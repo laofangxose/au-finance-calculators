@@ -1,0 +1,72 @@
+.stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: #fff;
+  color: inherit;
+}
+
+.input:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 25%, white);
+  border-color: var(--accent);
+}
+
+.errorText {
+  color: #b02f2f;
+  font-size: 0.8rem;
+}
+
+.summary {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.value {
+  font-weight: 700;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.errorList {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1rem;
+  color: #8f2d2d;
+}
