@@ -5,6 +5,7 @@ import type {
 } from "./types";
 
 export type NovatedLeaseFormState = {
+  im: string;
   s: string;
   pf: string;
   fy: string;
@@ -46,9 +47,12 @@ export type NovatedLeaseFormState = {
   qmf: string;
   qrw: string;
   qfu: string;
+  qmp: string;
+  rat: string;
 };
 
 export const NOVATED_LEASE_QUERY_PARAM_MAP = {
+  im: "inputMode",
   s: "salary.grossAnnualSalary",
   pf: "salary.payFrequency",
   fy: "taxOptions.incomeTaxYear",
@@ -90,9 +94,12 @@ export const NOVATED_LEASE_QUERY_PARAM_MAP = {
   qmf: "quoteContext.quotedMonthlyAdminFee",
   qrw: "quoteContext.quoteIncludesRunningCosts",
   qfu: "quoteContext.quoteIncludesFuel",
+  qmp: "quote.quotedMonthlyLeasePayment",
+  rat: "runningCosts.annualTotal",
 } as const;
 
 export const DEFAULT_NOVATED_LEASE_FORM_STATE: NovatedLeaseFormState = {
+  im: "quote",
   s: "120000",
   pf: "fortnightly",
   fy: "FY2025-26",
@@ -134,6 +141,8 @@ export const DEFAULT_NOVATED_LEASE_FORM_STATE: NovatedLeaseFormState = {
   qmf: "",
   qrw: "1",
   qfu: "1",
+  qmp: "1300",
+  rat: "5800",
 };
 
 function parseBoolean(value: string): boolean {
@@ -180,6 +189,26 @@ export function normalizeNovatedLeaseFormState(
 export function toNovatedLeaseInput(
   state: NovatedLeaseFormState,
 ): NovatedLeaseCalculatorInput {
+  const isQuoteMode = state.im === "quote";
+  const annualRunningTotal = parseNumber(state.rat);
+  const runningCosts = isQuoteMode
+    ? {
+        annualRegistration: 0,
+        annualInsurance: 0,
+        annualMaintenance: 0,
+        annualTyres: 0,
+        annualFuelOrElectricity: 0,
+        annualOtherEligibleCarExpenses: annualRunningTotal,
+      }
+    : {
+        annualRegistration: parseNumber(state.rr),
+        annualInsurance: parseNumber(state.ri),
+        annualMaintenance: parseNumber(state.rm),
+        annualTyres: parseNumber(state.rt),
+        annualFuelOrElectricity: parseNumber(state.rf),
+        annualOtherEligibleCarExpenses: parseNumber(state.ro),
+      };
+
   return {
     vehicle: {
       vehicleType: state.vt as NovatedLeaseCalculatorInput["vehicle"]["vehicleType"],
@@ -192,20 +221,13 @@ export function toNovatedLeaseInput(
     },
     finance: {
       termMonths: parseNumber(state.tm) as 12 | 24 | 36 | 48 | 60,
-      annualInterestRatePct: parseNumber(state.ir),
+      annualInterestRatePct: isQuoteMode ? Number.NaN : parseNumber(state.ir),
       paymentsPerYear: parseNumber(state.ppy) as 12 | 26 | 52,
       establishmentFee: parseNumber(state.ef),
       monthlyAccountKeepingFee: parseNumber(state.maf),
       residualValueOverride: parseOptionalNumber(state.rvo),
     },
-    runningCosts: {
-      annualRegistration: parseNumber(state.rr),
-      annualInsurance: parseNumber(state.ri),
-      annualMaintenance: parseNumber(state.rm),
-      annualTyres: parseNumber(state.rt),
-      annualFuelOrElectricity: parseNumber(state.rf),
-      annualOtherEligibleCarExpenses: parseNumber(state.ro),
-    },
+    runningCosts,
     salary: {
       grossAnnualSalary: parseNumber(state.s),
       payFrequency: state.pf as NovatedLeaseCalculatorInput["salary"]["payFrequency"],
@@ -287,6 +309,9 @@ export function validateNovatedLeaseFormState(
   if (!["FY2024-25", "FY2025-26", "FY2026-27"].includes(state.fy)) {
     applyFirstError(errors, "fy", "Income tax year is required.");
   }
+  if (!["quote", "detailed"].includes(state.im)) {
+    applyFirstError(errors, "im", "Choose Quote mode or Detailed mode.");
+  }
 
   if (!isFiniteNonNegative(state.pp)) {
     applyFirstError(errors, "pp", "Purchase price must be a non-negative number.");
@@ -301,40 +326,56 @@ export function validateNovatedLeaseFormState(
   if (!["12", "24", "36", "48", "60"].includes(state.tm)) {
     applyFirstError(errors, "tm", "Term months must be one of 12, 24, 36, 48, 60.");
   }
-  if (!isFiniteNonNegative(state.ir)) {
-    applyFirstError(errors, "ir", "Annual interest rate must be a non-negative number.");
-  }
-  if (!["12", "26", "52"].includes(state.ppy)) {
-    applyFirstError(errors, "ppy", "Payments per year must be one of 12, 26, 52.");
-  }
-  if (!isFiniteNonNegative(state.ef)) {
-    applyFirstError(errors, "ef", "Establishment fee must be a non-negative number.");
-  }
-  if (!isFiniteNonNegative(state.maf)) {
-    applyFirstError(
-      errors,
-      "maf",
-      "Monthly account-keeping fee must be a non-negative number.",
-    );
+  const isDetailedMode = state.im === "detailed";
+  if (isDetailedMode) {
+    if (!isFiniteNonNegative(state.ir)) {
+      applyFirstError(errors, "ir", "Annual interest rate must be a non-negative number.");
+    }
+    if (!["12", "26", "52"].includes(state.ppy)) {
+      applyFirstError(errors, "ppy", "Payments per year must be one of 12, 26, 52.");
+    }
+    if (!isFiniteNonNegative(state.ef)) {
+      applyFirstError(errors, "ef", "Establishment fee must be a non-negative number.");
+    }
+    if (!isFiniteNonNegative(state.maf)) {
+      applyFirstError(
+        errors,
+        "maf",
+        "Monthly account-keeping fee must be a non-negative number.",
+      );
+    }
+  } else {
+    if (!isFiniteValue(state.qmp) || parseNumber(state.qmp) <= 0) {
+      applyFirstError(
+        errors,
+        "qmp",
+        "Quote monthly lease payment must be greater than 0.",
+      );
+    }
+    if (!isFiniteNonNegative(state.rat)) {
+      applyFirstError(errors, "rat", "Annual running costs total must be non-negative.");
+    }
   }
 
-  if (!isFiniteNonNegative(state.rr)) {
-    applyFirstError(errors, "rr", "Registration must be a non-negative number.");
-  }
-  if (!isFiniteNonNegative(state.ri)) {
-    applyFirstError(errors, "ri", "Insurance must be a non-negative number.");
-  }
-  if (!isFiniteNonNegative(state.rm)) {
-    applyFirstError(errors, "rm", "Maintenance must be a non-negative number.");
-  }
-  if (!isFiniteNonNegative(state.rt)) {
-    applyFirstError(errors, "rt", "Tyres must be a non-negative number.");
-  }
-  if (!isFiniteNonNegative(state.rf)) {
-    applyFirstError(errors, "rf", "Fuel/electricity must be a non-negative number.");
-  }
-  if (!isFiniteNonNegative(state.ro)) {
-    applyFirstError(errors, "ro", "Other expenses must be a non-negative number.");
+  if (isDetailedMode) {
+    if (!isFiniteNonNegative(state.rr)) {
+      applyFirstError(errors, "rr", "Registration must be a non-negative number.");
+    }
+    if (!isFiniteNonNegative(state.ri)) {
+      applyFirstError(errors, "ri", "Insurance must be a non-negative number.");
+    }
+    if (!isFiniteNonNegative(state.rm)) {
+      applyFirstError(errors, "rm", "Maintenance must be a non-negative number.");
+    }
+    if (!isFiniteNonNegative(state.rt)) {
+      applyFirstError(errors, "rt", "Tyres must be a non-negative number.");
+    }
+    if (!isFiniteNonNegative(state.rf)) {
+      applyFirstError(errors, "rf", "Fuel/electricity must be a non-negative number.");
+    }
+    if (!isFiniteNonNegative(state.ro)) {
+      applyFirstError(errors, "ro", "Other expenses must be a non-negative number.");
+    }
   }
 
   if (!["365", "366"].includes(state.fyd)) {

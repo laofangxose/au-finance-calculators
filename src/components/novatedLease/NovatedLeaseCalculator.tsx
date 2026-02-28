@@ -4,6 +4,7 @@ import { novatedLeaseGlossary } from "@/content/glossary";
 import { CalculatorPage } from "@/components/calculator/CalculatorPage";
 import {
   DEFAULT_NOVATED_LEASE_FORM_STATE,
+  applyInputModeAdapter,
   calculateNovatedLease,
   getBuyOutrightComparison,
   mapEngineIssuesToFieldErrors,
@@ -28,9 +29,27 @@ const numberFormatter = new Intl.NumberFormat("en-AU", {
 
 type FieldErrors = Partial<Record<keyof NovatedLeaseFormState, string>>;
 
-function termTip(term: string): string {
-  const match = novatedLeaseGlossary.find((entry) => entry.term === term);
-  return match ? `${match.short} ${match.detail}` : term;
+function glossary(term: string) {
+  return novatedLeaseGlossary.find((entry) => entry.term === term);
+}
+
+function GlossaryTip({ term, label }: { term: string; label?: string }) {
+  const entry = glossary(term);
+  if (!entry) return null;
+  return (
+    <span className={styles.glossaryTip}>
+      <button
+        type="button"
+        className={styles.glossaryAbbr}
+        aria-label={`${entry.term}: ${entry.short}`}
+      >
+        {label ?? term}
+      </button>
+      <span className={styles.glossaryTooltip} role="tooltip">
+        <strong>{entry.term}:</strong> {entry.short} {entry.detail}
+      </span>
+    </span>
+  );
 }
 
 type TextFieldProps = {
@@ -40,7 +59,6 @@ type TextFieldProps = {
   onChange: (name: keyof NovatedLeaseFormState, value: string) => void;
   type?: "text" | "number" | "date";
   step?: string;
-  placeholder?: string;
 };
 
 function TextField({
@@ -50,7 +68,6 @@ function TextField({
   onChange,
   type = "text",
   step,
-  placeholder,
 }: TextFieldProps) {
   const meta = novatedLeaseFieldMeta[name];
   return (
@@ -64,12 +81,10 @@ function TextField({
         className={styles.input}
         type={type}
         step={step}
-        placeholder={placeholder}
         value={state[name]}
         onChange={(event) => onChange(name, event.target.value)}
         aria-invalid={Boolean(errors[name])}
       />
-      <span className={styles.metaRule}>Format: {meta.formatRule}</span>
       {errors[name] ? <span className={styles.errorText}>{errors[name]}</span> : null}
     </label>
   );
@@ -107,7 +122,6 @@ function SelectField({
           </option>
         ))}
       </select>
-      <span className={styles.metaRule}>Format: {meta.formatRule}</span>
       {errors[name] ? <span className={styles.errorText}>{errors[name]}</span> : null}
     </label>
   );
@@ -148,9 +162,9 @@ function mergeFieldErrors(primary: FieldErrors, secondary: FieldErrors): FieldEr
 }
 
 function differenceLabel(value: number): string {
-  if (value < 0) return "Novated saves";
-  if (value > 0) return "Novated costs more";
-  return "No difference";
+  if (value < 0) return "You save with novated lease";
+  if (value > 0) return "Buy outright is cheaper";
+  return "Costs are similar";
 }
 
 export function NovatedLeaseCalculator() {
@@ -159,14 +173,17 @@ export function NovatedLeaseCalculator() {
   const uiFieldErrors = validateNovatedLeaseFormState(normalizedState);
   const hasUiErrors = Object.keys(uiFieldErrors).length > 0;
 
-  const input = toNovatedLeaseInput(normalizedState);
-  const engineResult = hasUiErrors ? null : calculateNovatedLease(input);
+  const baseInput = toNovatedLeaseInput(normalizedState);
+  const adaptedInput = applyInputModeAdapter(normalizedState, baseInput);
+  const engineResult = hasUiErrors ? null : calculateNovatedLease(adaptedInput);
   const engineFieldErrors = engineResult
     ? mapEngineIssuesToFieldErrors(engineResult.validationIssues)
     : {};
   const fieldErrors = mergeFieldErrors(uiFieldErrors, engineFieldErrors);
-  const comparison = engineResult ? getBuyOutrightComparison(input, engineResult) : null;
-  const isEcmRelevant = !(engineResult?.fbt?.evExemptionApplied ?? false);
+  const comparison = engineResult ? getBuyOutrightComparison(adaptedInput, engineResult) : null;
+
+  const mode = normalizedState.im;
+  const isDetailed = mode === "detailed";
 
   const onChange = (name: keyof NovatedLeaseFormState, value: string) => {
     setState((prev) =>
@@ -178,17 +195,64 @@ export function NovatedLeaseCalculator() {
   };
 
   const issues = engineResult?.validationIssues ?? [];
-  const assumptions = engineResult?.assumptions ?? [];
 
   return (
     <CalculatorPage
       title="Novated Lease Calculator"
-      description="Estimate your novated lease outcomes and compare against buying outright with a shareable URL scenario."
+      description="Use Quote mode for a quick decision. Use Detailed mode for advanced assumptions."
       form={
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Salary & Tax Assumptions</h3>
+            <h3 className={styles.sectionTitle}>Input Style</h3>
+            <SelectField
+              name="im"
+              state={normalizedState}
+              errors={fieldErrors}
+              onChange={onChange}
+              options={[
+                { value: "quote", label: "Quote mode (recommended)" },
+                { value: "detailed", label: "Detailed mode (advanced)" },
+              ]}
+            />
+          </section>
+
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>Your Situation</h3>
             <div className={styles.fieldGrid}>
+              <TextField
+                name="pp"
+                state={normalizedState}
+                errors={fieldErrors}
+                onChange={onChange}
+                type="number"
+                step="0.01"
+              />
+              <SelectField
+                name="vt"
+                state={normalizedState}
+                errors={fieldErrors}
+                onChange={onChange}
+                options={[
+                  { value: "ice", label: "Petrol / Diesel" },
+                  { value: "hev", label: "Hybrid" },
+                  { value: "phev", label: "Plug-in Hybrid" },
+                  { value: "bev", label: "Electric vehicle" },
+                  { value: "fcev", label: "Hydrogen vehicle" },
+                ]}
+              />
+              <SelectField
+                name="tm"
+                state={normalizedState}
+                errors={fieldErrors}
+                onChange={onChange}
+                options={[
+                  { value: "12", label: "12 months" },
+                  { value: "24", label: "24 months" },
+                  { value: "36", label: "36 months" },
+                  { value: "48", label: "48 months" },
+                  { value: "60", label: "60 months" },
+                ]}
+              />
               <TextField
                 name="s"
                 state={normalizedState}
@@ -219,242 +283,86 @@ export function NovatedLeaseCalculator() {
                   { value: "FY2026-27", label: "FY2026-27" },
                 ]}
               />
-              <CheckboxField name="ml" state={normalizedState} onChange={onChange} />
             </div>
           </section>
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Vehicle & Lease Terms</h3>
-            <div className={styles.fieldGrid}>
-              <SelectField
-                name="vt"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                options={[
-                  { value: "ice", label: "ICE" },
-                  { value: "hev", label: "HEV" },
-                  { value: "phev", label: "PHEV" },
-                  { value: "bev", label: "BEV" },
-                  { value: "fcev", label: "FCEV" },
-                ]}
-              />
-              <TextField
-                name="pp"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <SelectField
-                name="tm"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                options={[
-                  { value: "12", label: "12 months" },
-                  { value: "24", label: "24 months" },
-                  { value: "36", label: "36 months" },
-                  { value: "48", label: "48 months" },
-                  { value: "60", label: "60 months" },
-                ]}
-              />
-              <TextField
-                name="ir"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <SelectField
-                name="ppy"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                options={[
-                  { value: "12", label: "12" },
-                  { value: "26", label: "26" },
-                  { value: "52", label: "52" },
-                ]}
-              />
-            </div>
-          </section>
+          {isDetailed ? (
+            <>
+              <section className={styles.section}>
+                <h3 className={styles.sectionTitle}>Running Costs</h3>
+                <div className={styles.fieldGrid}>
+                  <TextField name="rr" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <TextField name="ri" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <TextField name="rm" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <TextField name="rt" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <TextField name="rf" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <TextField name="ro" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                </div>
+              </section>
+              <details className={styles.detailsBlock}>
+                <summary className={styles.detailsTitle}>Advanced (Detailed mode)</summary>
+                <div className={styles.detailsContent}>
+                  <div className={styles.fieldGrid}>
+                    <TextField name="ir" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <SelectField
+                      name="ppy"
+                      state={normalizedState}
+                      errors={fieldErrors}
+                      onChange={onChange}
+                      options={[
+                        { value: "12", label: "12" },
+                        { value: "26", label: "26" },
+                        { value: "52", label: "52" },
+                      ]}
+                    />
+                    <TextField name="ef" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <TextField name="maf" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <TextField name="rvo" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <TextField name="bv" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <TextField name="mlr" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.0001" />
+                    <TextField name="fyd" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="1" />
+                    <TextField name="dav" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="1" />
+                    <TextField name="fsr" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.0001" />
+                    <TextField name="fhud" state={normalizedState} errors={fieldErrors} onChange={onChange} type="date" />
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <CheckboxField name="ml" state={normalizedState} onChange={onChange} />
+                    <CheckboxField name="irc" state={normalizedState} onChange={onChange} />
+                    <CheckboxField name="ue" state={normalizedState} onChange={onChange} />
+                    <CheckboxField name="phex" state={normalizedState} onChange={onChange} />
+                    <CheckboxField name="phbc" state={normalizedState} onChange={onChange} />
+                  </div>
+                </div>
+              </details>
+            </>
+          ) : (
+            <>
+              <section className={styles.section}>
+                <h3 className={styles.sectionTitle}>Quote Inputs</h3>
+                <div className={styles.fieldGrid}>
+                  <TextField name="qmp" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <TextField name="rat" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  <CheckboxField name="irc" state={normalizedState} onChange={onChange} />
+                </div>
+              </section>
+              <details className={styles.detailsBlock}>
+                <summary className={styles.detailsTitle}>Advanced (Quote mode optional)</summary>
+                <div className={styles.detailsContent}>
+                  <div className={styles.fieldGrid}>
+                    <TextField name="qn" state={normalizedState} errors={fieldErrors} onChange={onChange} />
+                    <TextField name="qmf" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <TextField name="quf" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                    <TextField name="qrv" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
+                  </div>
+                </div>
+              </details>
+            </>
+          )}
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Running Costs</h3>
-            <div className={styles.fieldGrid}>
-              <TextField
-                name="rr"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <TextField
-                name="ri"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <TextField
-                name="rm"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <TextField
-                name="rt"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <TextField
-                name="rf"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-              <TextField
-                name="ro"
-                state={normalizedState}
-                errors={fieldErrors}
-                onChange={onChange}
-                type="number"
-                step="0.01"
-              />
-            </div>
-          </section>
-
-          <details className={styles.detailsBlock}>
-            <summary className={styles.detailsTitle}>Advanced Options</summary>
-            <div className={styles.detailsContent}>
-              <div className={styles.fieldGrid}>
-                <TextField
-                  name="ef"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="0.01"
-                />
-                <TextField
-                  name="maf"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="0.01"
-                />
-                <TextField
-                  name="rvo"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="0.01"
-                />
-                <TextField
-                  name="bv"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="0.01"
-                />
-                <TextField
-                  name="fhud"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="date"
-                />
-                <TextField
-                  name="mlr"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="0.0001"
-                />
-                <TextField
-                  name="fyd"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="1"
-                />
-                <TextField
-                  name="dav"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="1"
-                />
-                <TextField
-                  name="fsr"
-                  state={normalizedState}
-                  errors={fieldErrors}
-                  onChange={onChange}
-                  type="number"
-                  step="0.0001"
-                />
-              </div>
-              <div className={styles.fieldGrid}>
-                {isEcmRelevant ? (
-                  <CheckboxField name="ue" state={normalizedState} onChange={onChange} />
-                ) : (
-                  <p className={styles.muted}>
-                    ECM is hidden because FBT exemption is active for this scenario.
-                  </p>
-                )}
-                <CheckboxField name="evt" state={normalizedState} onChange={onChange} />
-                <CheckboxField name="irc" state={normalizedState} onChange={onChange} />
-                <CheckboxField name="eve" state={normalizedState} onChange={onChange} />
-                <CheckboxField name="phex" state={normalizedState} onChange={onChange} />
-                <CheckboxField name="phbc" state={normalizedState} onChange={onChange} />
-              </div>
-            </div>
-          </details>
-
-          <details className={styles.detailsBlock}>
-            <summary className={styles.detailsTitle}>Quote Inputs (Optional)</summary>
-            <div className={styles.detailsContent}>
-              <div className={styles.fieldGrid}>
-                <TextField name="qn" state={normalizedState} errors={fieldErrors} onChange={onChange} />
-                <TextField name="qpp" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
-                <TextField name="qad" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
-                <TextField name="qrv" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
-                <TextField name="qrp" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.0001" />
-                <TextField name="qri" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
-                <TextField name="quf" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
-                <TextField name="qmf" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
-              </div>
-              <div className={styles.fieldGrid}>
-                <CheckboxField name="qir" state={normalizedState} onChange={onChange} />
-                <CheckboxField name="qrw" state={normalizedState} onChange={onChange} />
-                <CheckboxField name="qfu" state={normalizedState} onChange={onChange} />
-              </div>
-            </div>
-          </details>
-
-          <button className={styles.calculateBtn} type="button" disabled={hasUiErrors}>
-            Calculate (updates automatically)
-          </button>
           <p className={styles.muted}>
-            Shareable link enabled: URL updates as you edit and restores state on refresh.
+            Hover or focus for definitions: <GlossaryTip term="FBT" />,{" "}
+            <GlossaryTip term="ECM" />, <GlossaryTip term="Residual" />,{" "}
+            <GlossaryTip term="PHEV" />.
           </p>
         </div>
       }
@@ -462,7 +370,7 @@ export function NovatedLeaseCalculator() {
         <div className={styles.summary}>
           {hasUiErrors ? (
             <div className={styles.issueError}>
-              Inputs are invalid. Fix inline field errors to calculate results.
+              Some inputs need attention before results can be shown.
             </div>
           ) : null}
 
@@ -470,70 +378,51 @@ export function NovatedLeaseCalculator() {
             <>
               <section className={styles.executiveSection}>
                 <h3 className={styles.execTitle}>Executive Summary</h3>
-                <div className={styles.badgeRow}>
-                  {engineResult.fbt?.evExemptionApplied ? (
-                    <span className={styles.badgeSuccess}>
-                      FBT Exempted (EV conditions met)
-                    </span>
-                  ) : (
-                    <span className={styles.badgeNeutral}>FBT Not Exempted</span>
-                  )}
-                  {engineResult.fbt?.evExemptionReason ? (
-                    <span className={styles.badgeHint}>
-                      {engineResult.fbt.evExemptionReason}
-                    </span>
-                  ) : null}
-                </div>
                 <div className={styles.headlineGrid}>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Novated Monthly Out-of-Pocket</p>
+                    <p className={styles.headlineLabel}>Novated monthly out-of-pocket</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.novatedMonthlyOutOfPocket)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Buy Outright Monthly Equivalent</p>
+                    <p className={styles.headlineLabel}>Buy outright monthly equivalent</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.monthlyEquivalentCost)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>
-                      Difference ({differenceLabel(comparison.monthlyDifference)})
-                    </p>
+                    <p className={styles.headlineLabel}>Monthly difference</p>
                     <p className={styles.headlineValue}>
-                      {currencyFormatter.format(Math.abs(comparison.monthlyDifference))}
+                      {currencyFormatter.format(comparison.monthlyDifference)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Term Cost Difference</p>
+                    <p className={styles.headlineLabel}>Total term difference</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.totalCostDifferenceOverTerm)}
                     </p>
                   </div>
-                  <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Residual / Buyout Amount</p>
-                    <p className={styles.headlineValue}>
-                      {currencyFormatter.format(engineResult.lease?.residualValue ?? 0)}
-                    </p>
-                  </div>
                 </div>
+                <ul className={styles.explainList}>
+                  <li>{differenceLabel(comparison.monthlyDifference)} based on current assumptions.</li>
+                  <li>
+                    Tax effect this year:{" "}
+                    {currencyFormatter.format(engineResult.taxComparison?.taxAndLevySavings ?? 0)}.
+                  </li>
+                  <li>
+                    Buy-out comparison assumes opportunity cost rate{" "}
+                    {numberFormatter.format(comparison.opportunityCostRateAssumed)}%.
+                  </li>
+                </ul>
               </section>
 
               <section className={styles.compareSection}>
-                <h3 className={styles.execTitle}>Comparison</h3>
+                <h3 className={styles.execTitle}>Novated vs Buy Outright</h3>
                 <div className={styles.compareGrid}>
                   <article className={styles.compareCard}>
-                    <h4 className={styles.compareTitle}>Novated Lease</h4>
+                    <h4 className={styles.compareTitle}>Novated</h4>
                     <div className={styles.breakdownList}>
-                      <div className={styles.row}>
-                        <span>Annual package cost</span>
-                        <span className={styles.value}>
-                          {currencyFormatter.format(
-                            engineResult.packaging?.annualPackageCostBeforeEcm ?? 0,
-                          )}
-                        </span>
-                      </div>
                       <div className={styles.row}>
                         <span>Pre-tax deduction (annual)</span>
                         <span className={styles.value}>
@@ -542,16 +431,16 @@ export function NovatedLeaseCalculator() {
                           )}
                         </span>
                       </div>
-                      {isEcmRelevant ? (
-                        <div className={styles.row}>
-                          <span>Post-tax ECM (annual)</span>
-                          <span className={styles.value}>
-                            {currencyFormatter.format(
-                              engineResult.packaging?.annualPostTaxDeduction ?? 0,
-                            )}
-                          </span>
-                        </div>
-                      ) : null}
+                      <div className={styles.row}>
+                        <span>
+                          Post-tax contribution (annual) <GlossaryTip term="ECM" />
+                        </span>
+                        <span className={styles.value}>
+                          {currencyFormatter.format(
+                            engineResult.packaging?.annualPostTaxDeduction ?? 0,
+                          )}
+                        </span>
+                      </div>
                       <div className={styles.row}>
                         <span>Tax and levy saved</span>
                         <span className={styles.value}>
@@ -563,28 +452,18 @@ export function NovatedLeaseCalculator() {
                     </div>
                   </article>
                   <article className={styles.compareCard}>
-                    <h4 className={styles.compareTitle}>Buy Outright (Cash)</h4>
+                    <h4 className={styles.compareTitle}>Buy Outright</h4>
                     <div className={styles.breakdownList}>
                       <div className={styles.row}>
-                        <span>Vehicle purchase price</span>
+                        <span>Vehicle price</span>
                         <span className={styles.value}>
-                          {currencyFormatter.format(input.vehicle.purchasePriceInclGst)}
+                          {currencyFormatter.format(adaptedInput.vehicle.purchasePriceInclGst)}
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Running costs over term</span>
+                        <span>Total cash outlay (term)</span>
                         <span className={styles.value}>
-                          {currencyFormatter.format(
-                            comparison.totalCashOutlayOverTerm -
-                              input.vehicle.purchasePriceInclGst -
-                              input.finance.establishmentFee,
-                          )}
-                        </span>
-                      </div>
-                      <div className={styles.row}>
-                        <span>Upfront fees</span>
-                        <span className={styles.value}>
-                          {currencyFormatter.format(input.finance.establishmentFee)}
+                          {currencyFormatter.format(comparison.totalCashOutlayOverTerm)}
                         </span>
                       </div>
                       <div className={styles.row}>
@@ -595,23 +474,25 @@ export function NovatedLeaseCalculator() {
                           )}
                         </span>
                       </div>
-                      <div className={styles.row}>
-                        <span>Total cash outlay (term)</span>
-                        <span className={styles.value}>
-                          {currencyFormatter.format(comparison.totalCashOutlayOverTerm)}
-                        </span>
-                      </div>
                     </div>
                   </article>
                 </div>
               </section>
 
               <details className={styles.detailsBlock} open>
-                <summary className={styles.detailsTitle}>Details: Cost Breakdown</summary>
+                <summary className={styles.detailsTitle}>Expandable breakdown</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.breakdownList}>
                     <div className={styles.row}>
-                      <span>Periodic finance repayment</span>
+                      <span>Annual package cost before ECM</span>
+                      <span className={styles.value}>
+                        {currencyFormatter.format(
+                          engineResult.packaging?.annualPackageCostBeforeEcm ?? 0,
+                        )}
+                      </span>
+                    </div>
+                    <div className={styles.row}>
+                      <span>Periodic lease repayment</span>
                       <span className={styles.value}>
                         {currencyFormatter.format(
                           engineResult.lease?.periodicFinanceRepayment ?? 0,
@@ -619,34 +500,18 @@ export function NovatedLeaseCalculator() {
                       </span>
                     </div>
                     <div className={styles.row}>
-                      <span>Annual finance repayment</span>
+                      <span>Residual / balloon</span>
                       <span className={styles.value}>
-                        {currencyFormatter.format(
-                          engineResult.lease?.annualFinanceRepayment ?? 0,
-                        )}
+                        {currencyFormatter.format(engineResult.lease?.residualValue ?? 0)}
                       </span>
                     </div>
                     <div className={styles.row}>
-                      <span>Gross FBT taxable value</span>
+                      <span>
+                        FBT taxable value (gross) <GlossaryTip term="FBT" />
+                      </span>
                       <span className={styles.value}>
                         {currencyFormatter.format(
                           engineResult.fbt?.grossTaxableValueBeforeExemptions ?? 0,
-                        )}
-                      </span>
-                    </div>
-                    <div className={styles.row}>
-                      <span>Taxable value after ECM</span>
-                      <span className={styles.value}>
-                        {currencyFormatter.format(
-                          engineResult.fbt?.taxableValueAfterEcm ?? 0,
-                        )}
-                      </span>
-                    </div>
-                    <div className={styles.row}>
-                      <span>Per-pay net benefit estimate</span>
-                      <span className={styles.value}>
-                        {currencyFormatter.format(
-                          engineResult.cashflow?.perPayNetBenefitEstimate ?? 0,
                         )}
                       </span>
                     </div>
@@ -655,17 +520,13 @@ export function NovatedLeaseCalculator() {
               </details>
 
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Details: Assumptions & Disclaimer</summary>
+                <summary className={styles.detailsTitle}>Assumptions and disclaimer</summary>
                 <div className={styles.detailsContent}>
                   <p className={styles.muted}>
-                    Estimates only. Not financial, tax, or legal advice. Buy outright
-                    comparison assumes opportunity cost rate of{" "}
-                    {numberFormatter.format(comparison.opportunityCostRateAssumed)}%.
-                    LCT is treated as an estimated component already included in
-                    purchase price when threshold is exceeded.
+                    This is an estimate only and not financial, tax, or legal advice.
                   </p>
                   <div className={styles.breakdownList}>
-                    {assumptions.map((assumption) => (
+                    {engineResult.assumptions.map((assumption) => (
                       <div className={styles.row} key={assumption.key}>
                         <span>{assumption.label}</span>
                         <span className={styles.value}>
@@ -680,24 +541,13 @@ export function NovatedLeaseCalculator() {
               </details>
 
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Details: Data Sources</summary>
+                <summary className={styles.detailsTitle}>Data sources</summary>
                 <div className={styles.detailsContent}>
                   <ul className={styles.sourceList}>
-                    <li>
-                      <a href="https://www.ato.gov.au/rates/individual-income-tax-rates/" target="_blank" rel="noreferrer">
-                        ATO individual income tax rates
-                      </a>
-                    </li>
-                    <li>
-                      <a href="https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/what-is-the-medicare-levy" target="_blank" rel="noreferrer">
-                        ATO Medicare levy
-                      </a>
-                    </li>
-                    <li>
-                      <a href="https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/cars-and-fbt/taxable-value-of-a-car-fringe-benefit" target="_blank" rel="noreferrer">
-                        ATO FBT car taxable value guidance
-                      </a>
-                    </li>
+                    <li>ATO individual income tax rates</li>
+                    <li>ATO Medicare levy</li>
+                    <li>ATO FBT car taxable value guidance</li>
+                    <li>ATO LCT thresholds</li>
                   </ul>
                 </div>
               </details>
@@ -705,12 +555,6 @@ export function NovatedLeaseCalculator() {
               <details className={styles.detailsBlock}>
                 <summary className={styles.detailsTitle}>Glossary</summary>
                 <div className={styles.detailsContent}>
-                  <p className={styles.muted}>
-                    Hover terms like <abbr title={termTip("FBT")}>FBT</abbr>,{" "}
-                    <abbr title={termTip("ECM")}>ECM</abbr>,{" "}
-                    <abbr title={termTip("Residual")}>Residual</abbr>, and{" "}
-                    <abbr title={termTip("BEV")}>BEV</abbr> for quick definitions.
-                  </p>
                   <div className={styles.glossaryList}>
                     {novatedLeaseGlossary.map((entry) => (
                       <div key={entry.term} className={styles.glossaryItem}>

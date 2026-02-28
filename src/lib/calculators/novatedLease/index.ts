@@ -8,6 +8,7 @@ export {
   validateNovatedLeaseFormState,
   type NovatedLeaseFormState,
 } from "./formState";
+export { applyInputModeAdapter } from "./modeAdapter";
 export {
   getNovatedLeaseHeadlineMetrics,
   getBuyOutrightComparison,

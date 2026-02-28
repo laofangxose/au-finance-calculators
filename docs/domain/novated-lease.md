@@ -39,8 +39,8 @@ Out of scope for this domain model version:
 
 The model must support exactly two user input modes:
 
-1. **Detailed Mode**: user provides full lease parameters (term, rate, fees, running costs).
-2. **Quote Mode**: user provides dealer monthly lease payment from quote and required contextual fields.
+1. **Quote Mode (default)**: typical user enters only what they usually have from a dealer/salary-packaging quote.
+2. **Detailed Mode (advanced)**: user enters full lease parameters and tax assumptions.
 
 Both modes must produce the same output contract.
 
@@ -49,6 +49,12 @@ Mode behavior principles:
 - no silent assumptions: inferred/defaulted values must be listed in output assumptions
 - quote-mode inferred values must carry confidence labels (high/medium/low)
 - users can override inferred values where field exists in chosen mode
+
+Decision-tool UX principle:
+
+- default experience must minimize fields and jargon
+- advanced controls must be progressively disclosed
+- outputs must prioritize “should I do this?” comparisons over technical internals
 
 ## 2. Input Parameters (Types + Descriptions)
 
@@ -157,6 +163,132 @@ export type NovatedLeaseQuoteContextInput = {
 - `inputMode = "detailed"` requires `finance` object and ignores `quote.quotedMonthlyLeasePayment`.
 - `inputMode = "quote"` requires `quote.quotedMonthlyLeasePayment` and may omit `finance.annualInterestRatePct`.
 - In quote mode, `finance.termMonths` is still required either from `finance.termMonths` or mapped quote metadata.
+
+## 2.1 User-Facing Mode Definitions (Decision-First)
+
+### Quote Mode (default)
+
+Intended user:
+
+- user has a quote but not full finance internals
+
+Required inputs (minimum set):
+
+- vehicle price (AUD, incl. GST)
+- quote monthly lease payment (AUD/month)
+- lease term (months)
+- gross annual salary
+- pay frequency
+- annual running costs bundle (single total, with optional expansion)
+- vehicle type (Petrol/Diesel, Hybrid, Plug-in Hybrid, Electric, Hydrogen)
+- tax year (default to current supported FY)
+
+Optional inputs:
+
+- quote monthly admin fee
+- upfront fees from quote
+- residual/balloon value from quote
+- split running costs into registration/insurance/maintenance/etc.
+
+Validation rules:
+
+- required numeric fields must be finite and >= 0
+- quote monthly payment must be > 0
+- term must be one of supported terms (12/24/36/48/60)
+- salary must be > 0
+- if residual is provided, must be >= minimum residual table amount and < vehicle price
+
+### Detailed Mode (advanced)
+
+Intended user:
+
+- user understands finance assumptions and wants fine-grained control
+
+Required inputs:
+
+- all Quote Mode required inputs (except quote monthly payment)
+- annual interest rate
+- payment frequency for finance schedule (12/26/52)
+- establishment fee
+- monthly account fee
+- explicit running cost components (registration, insurance, maintenance, tyres, energy, other)
+
+Optional inputs:
+
+- FBT base value override
+- statutory FBT rate override
+- Medicare levy override
+- days available for private use override
+- residual override
+
+Validation rules:
+
+- all required detailed numeric fields finite and >= 0
+- interest rate >= 0
+- FBT statutory override, if supplied, must be in [0, 1]
+- days available must be between 0 and FBT year days
+- same residual constraints as Quote Mode
+
+## 2.2 UI Schema (User-Friendly Labels)
+
+The UI must render user-facing labels and helper text. Internal keys remain implementation detail.
+
+| Field Key | Label | Helper Text | Unit | Default | Mode |
+|---|---|---|---|---|---|
+| `inputMode` | Input Style | Choose “Use my quote” or “Enter detailed values”. | none | `quote` | both |
+| `vehicle.purchasePriceInclGst` | Vehicle Price | Drive-away price including GST. | AUD | 50,000 | both |
+| `quote.quotedMonthlyLeasePayment` | Quote Monthly Lease Payment | Monthly amount from your quote. | AUD/month | empty | quote |
+| `finance.termMonths` | Lease Term | Contract length in months. | months | 36 | both |
+| `salary.grossAnnualSalary` | Gross Annual Salary | Salary before salary packaging. | AUD/year | 120,000 | both |
+| `salary.payFrequency` | Pay Frequency | How often you are paid. | none | fortnightly | both |
+| `runningCosts.annualTotal` (UI aggregate) | Annual Running Costs | Total yearly running costs if you only have one number. | AUD/year | 5,800 | quote |
+| `runningCosts.annualRegistration` | Registration | Yearly registration amount. | AUD/year | 900 | detailed |
+| `runningCosts.annualInsurance` | Insurance | Yearly insurance amount. | AUD/year | 1,400 | detailed |
+| `runningCosts.annualMaintenance` | Maintenance | Yearly servicing/maintenance amount. | AUD/year | 800 | detailed |
+| `runningCosts.annualTyres` | Tyres | Yearly tyre budget. | AUD/year | 300 | detailed |
+| `runningCosts.annualFuelOrElectricity` | Fuel / Charging | Yearly fuel or electricity spend. | AUD/year | 2,200 | detailed |
+| `runningCosts.annualOtherEligibleCarExpenses` | Other Car Costs | Other yearly eligible costs. | AUD/year | 200 | detailed |
+| `vehicle.vehicleType` | Vehicle Type | Petrol/Diesel, Hybrid, Plug-in Hybrid, Electric, or Hydrogen. | none | Electric vehicle | both |
+| `quote.quotedMonthlyAdminFee` | Quote Monthly Admin Fee | Optional monthly admin fee in quote. | AUD/month | empty | quote |
+| `quote.quotedUpfrontFeesTotal` | Quote Upfront Fees | Optional upfront fees in quote. | AUD | empty | quote |
+| `finance.annualInterestRatePct` | Interest Rate | Annual interest rate (advanced). | % | 8.5 | detailed |
+| `finance.paymentsPerYear` | Finance Payments Per Year | Number of repayments used in finance model. | none | 12 | detailed |
+| `finance.establishmentFee` | Establishment Fee | Upfront fee added to financed amount. | AUD | 500 | detailed |
+| `finance.monthlyAccountKeepingFee` | Monthly Account Fee | Monthly account keeping fee. | AUD/month | 15 | detailed |
+| `finance.residualValueOverride` | Residual (Optional Override) | Optional balloon amount override. | AUD | empty | detailed |
+| `packaging.includeRunningCostsInPackage` | Include Running Costs | Include yearly running costs in package estimate. | none | true | both |
+| `packaging.useEcm` | Use Employee Contribution Method | Advanced option; hidden when not relevant. | none | true | detailed |
+
+Terminology rule:
+
+- UI must use plain language labels (e.g., “Petrol/Diesel” not “ICE”, “Electric vehicle” not “BEV”).
+- Technical acronyms can appear in glossary/help only.
+
+## 3.1 Decision-First Output Requirements
+
+For both modes, required outputs in UI order:
+
+### Headline Metrics (always visible)
+
+- Novated monthly out-of-pocket
+- Buy outright monthly equivalent cost
+- Monthly difference (saves vs costs more)
+- Total cost difference over term
+- Residual/buyout amount
+
+### Explanation Bullets (always visible)
+
+- one-line statement on whether novated appears cheaper or more expensive
+- one-line statement of key driver (tax saving, running costs, or residual impact)
+- one-line statement of major assumption (e.g., quote-based payment used, opportunity cost set to 0%)
+
+### Expandable Breakdown (progressive disclosure)
+
+- lease/payment details
+- tax + FBT + ECM details
+- running cost details
+- assumptions and disclaimer
+- data sources
 
 ## 3. Output Structure (Strict Interface Definition)
 

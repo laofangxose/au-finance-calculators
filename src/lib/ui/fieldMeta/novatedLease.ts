@@ -16,6 +16,8 @@ export type FieldMeta = {
   unit: FieldUnit;
   formatRule: string;
   validationMessage: string;
+  defaultValue: string;
+  modes: Array<"quote" | "detailed" | "both">;
 };
 
 export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMeta> = {
@@ -25,6 +27,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter salary greater than 0.",
+    defaultValue: "120000",
+    modes: ["both"],
   },
   pf: {
     label: "Pay Frequency",
@@ -32,6 +36,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "One of weekly, fortnightly, monthly",
     validationMessage: "Select a pay frequency.",
+    defaultValue: "fortnightly",
+    modes: ["both"],
   },
   fy: {
     label: "Income Tax Year",
@@ -39,6 +45,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "One of supported financial years",
     validationMessage: "Select a valid tax year.",
+    defaultValue: "FY2025-26",
+    modes: ["both"],
   },
   ml: {
     label: "Include Medicare Levy",
@@ -46,6 +54,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Select Medicare levy preference.",
+    defaultValue: "true",
+    modes: ["both"],
   },
   mlr: {
     label: "Medicare Levy Override",
@@ -53,6 +63,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "%",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be a non-negative number.",
+    defaultValue: "empty",
+    modes: ["detailed"],
   },
   fyd: {
     label: "FBT Year Days",
@@ -60,6 +72,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "days",
     formatRule: "365 or 366",
     validationMessage: "Enter 365 or 366.",
+    defaultValue: "365",
+    modes: ["detailed"],
   },
   dav: {
     label: "Days Available for Private Use",
@@ -67,6 +81,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "days",
     formatRule: "0 to FBT year days",
     validationMessage: "Must be between 0 and FBT year days.",
+    defaultValue: "365",
+    modes: ["detailed"],
   },
   fsr: {
     label: "FBT Statutory Rate Override",
@@ -74,13 +90,17 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "%",
     formatRule: "Optional number in range 0..1",
     validationMessage: "Must be between 0 and 1.",
+    defaultValue: "empty",
+    modes: ["detailed"],
   },
   vt: {
     label: "Vehicle Type",
     description: "Fuel/technology category of the vehicle.",
     unit: "none",
-    formatRule: "One of ICE, HEV, PHEV, BEV, FCEV",
+    formatRule: "Petrol/Diesel, Hybrid, Plug-in Hybrid, Electric vehicle, Hydrogen",
     validationMessage: "Select a vehicle type.",
+    defaultValue: "Electric vehicle",
+    modes: ["both"],
   },
   pp: {
     label: "Vehicle Purchase Price (incl. GST)",
@@ -88,6 +108,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Number >= 0",
     validationMessage: "Enter a non-negative purchase price.",
+    defaultValue: "50000",
+    modes: ["both"],
   },
   bv: {
     label: "FBT Base Value (optional)",
@@ -95,6 +117,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be a non-negative number.",
+    defaultValue: "empty",
+    modes: ["detailed"],
   },
   eve: {
     label: "Vehicle Eligible for EV FBT Exemption",
@@ -102,6 +126,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set eligibility status.",
+    defaultValue: "auto",
+    modes: ["detailed"],
   },
   fhud: {
     label: "First Held and Used Date (optional)",
@@ -109,6 +135,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "date",
     formatRule: "YYYY-MM-DD",
     validationMessage: "Enter a valid date.",
+    defaultValue: "empty",
+    modes: ["detailed"],
   },
   phex: {
     label: "PHEV Exempt Before 1 Apr 2025",
@@ -116,6 +144,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "false",
+    modes: ["detailed"],
   },
   phbc: {
     label: "Binding Commitment Before 1 Apr 2025",
@@ -123,6 +153,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "false",
+    modes: ["detailed"],
   },
   tm: {
     label: "Lease Term",
@@ -130,6 +162,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "months",
     formatRule: "12, 24, 36, 48, or 60",
     validationMessage: "Choose a supported term.",
+    defaultValue: "36",
+    modes: ["both"],
   },
   ir: {
     label: "Interest Rate",
@@ -137,6 +171,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "%",
     formatRule: "Number >= 0",
     validationMessage: "Enter a non-negative interest rate.",
+    defaultValue: "8.5",
+    modes: ["detailed"],
   },
   ppy: {
     label: "Payments Per Year",
@@ -144,6 +180,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "12, 26, or 52",
     validationMessage: "Select 12, 26, or 52.",
+    defaultValue: "12",
+    modes: ["detailed"],
   },
   ef: {
     label: "Establishment Fee",
@@ -151,6 +189,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Number >= 0",
     validationMessage: "Enter a non-negative fee.",
+    defaultValue: "500",
+    modes: ["detailed"],
   },
   maf: {
     label: "Monthly Account Keeping Fee",
@@ -158,6 +198,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/month",
     formatRule: "Number >= 0",
     validationMessage: "Enter a non-negative monthly fee.",
+    defaultValue: "15",
+    modes: ["detailed"],
   },
   rvo: {
     label: "Residual Value Override (optional)",
@@ -165,6 +207,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Optional number >= minimum residual and < purchase price",
     validationMessage: "Must satisfy residual constraints.",
+    defaultValue: "empty",
+    modes: ["detailed"],
   },
   rr: {
     label: "Registration",
@@ -172,6 +216,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter non-negative annual registration.",
+    defaultValue: "900",
+    modes: ["detailed"],
   },
   ri: {
     label: "Insurance",
@@ -179,6 +225,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter non-negative annual insurance.",
+    defaultValue: "1400",
+    modes: ["detailed"],
   },
   rm: {
     label: "Maintenance",
@@ -186,6 +234,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter non-negative annual maintenance.",
+    defaultValue: "800",
+    modes: ["detailed"],
   },
   rt: {
     label: "Tyres",
@@ -193,6 +243,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter non-negative annual tyres.",
+    defaultValue: "300",
+    modes: ["detailed"],
   },
   rf: {
     label: "Fuel or Electricity",
@@ -200,6 +252,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter non-negative annual fuel/electricity.",
+    defaultValue: "2200",
+    modes: ["detailed"],
   },
   ro: {
     label: "Other Eligible Car Expenses",
@@ -207,6 +261,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/year",
     formatRule: "Number >= 0",
     validationMessage: "Enter non-negative annual other costs.",
+    defaultValue: "200",
+    modes: ["detailed"],
   },
   ue: {
     label: "Use ECM",
@@ -214,6 +270,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "true",
+    modes: ["detailed"],
   },
   evt: {
     label: "Apply EV FBT Exemption Toggle",
@@ -221,6 +279,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "auto",
+    modes: ["detailed"],
   },
   irc: {
     label: "Include Running Costs in Package",
@@ -228,6 +288,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "true",
+    modes: ["both"],
   },
   qn: {
     label: "Quote Provider Name",
@@ -235,6 +297,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Text",
     validationMessage: "Optional text.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qpp: {
     label: "Quoted Per-Pay Deduction",
@@ -242,6 +306,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qad: {
     label: "Quoted Annual Deduction",
@@ -249,6 +315,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qrv: {
     label: "Quoted Residual Value",
@@ -256,6 +324,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qrp: {
     label: "Quoted Residual Percentage",
@@ -263,6 +333,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "%",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qir: {
     label: "Quote Lists Interest Rate",
@@ -270,6 +342,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "false",
+    modes: ["quote"],
   },
   qri: {
     label: "Quoted Interest Rate",
@@ -277,6 +351,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "%",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   quf: {
     label: "Quoted Upfront Fees",
@@ -284,6 +360,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qmf: {
     label: "Quoted Monthly Admin Fee",
@@ -291,6 +369,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "AUD/month",
     formatRule: "Optional number >= 0",
     validationMessage: "Must be non-negative.",
+    defaultValue: "empty",
+    modes: ["quote"],
   },
   qrw: {
     label: "Quote Includes Running Costs",
@@ -298,6 +378,8 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "true",
+    modes: ["quote"],
   },
   qfu: {
     label: "Quote Includes Fuel",
@@ -305,5 +387,34 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     unit: "none",
     formatRule: "Boolean",
     validationMessage: "Set true/false.",
+    defaultValue: "true",
+    modes: ["quote"],
+  },
+  im: {
+    label: "Input Style",
+    description: "Use your quote for a quick estimate, or enter detailed values.",
+    unit: "none",
+    formatRule: "quote or detailed",
+    validationMessage: "Choose Quote or Detailed mode.",
+    defaultValue: "quote",
+    modes: ["both"],
+  },
+  qmp: {
+    label: "Quote Monthly Lease Payment",
+    description: "Monthly lease payment from your provider quote.",
+    unit: "AUD/month",
+    formatRule: "Number > 0",
+    validationMessage: "Enter quote monthly lease payment greater than 0.",
+    defaultValue: "1300",
+    modes: ["quote"],
+  },
+  rat: {
+    label: "Annual Running Costs (Total)",
+    description: "Single yearly total if you do not have cost breakdowns.",
+    unit: "AUD/year",
+    formatRule: "Number >= 0",
+    validationMessage: "Enter non-negative annual running cost total.",
+    defaultValue: "5800",
+    modes: ["quote"],
   },
 };

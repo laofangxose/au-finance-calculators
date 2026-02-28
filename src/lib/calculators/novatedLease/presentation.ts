@@ -81,14 +81,11 @@ export function getBuyOutrightComparison(
     input.finance.establishmentFee;
   const monthlyEquivalentCost = totalCashOutlayOverTerm / termMonths;
 
-  const novatedAnnualEffectiveCost =
-    result.packaging.annualPackageCostBeforeEcm - result.taxComparison.taxAndLevySavings;
   const novatedMonthlyOutOfPocket =
     (result.packaging.annualPreTaxDeduction + result.packaging.annualPostTaxDeduction) / 12;
-  const novatedTotalEffectiveCostOverTerm = novatedAnnualEffectiveCost * termYears;
-  const totalCostDifferenceOverTerm =
-    novatedTotalEffectiveCostOverTerm - totalCashOutlayOverTerm;
-  const monthlyDifference = novatedMonthlyOutOfPocket - monthlyEquivalentCost;
+  const totalCashOutlayPerMonth = totalCashOutlayOverTerm / termMonths;
+  const monthlyDifference = novatedMonthlyOutOfPocket - totalCashOutlayPerMonth;
+  const totalCostDifferenceOverTerm = monthlyDifference * termMonths;
 
   return {
     monthlyEquivalentCost: roundCurrency(monthlyEquivalentCost),
