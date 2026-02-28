@@ -1,0 +1,10 @@
+{
+  "defaultFinancePaymentsPerYear": 12,
+  "defaultQuoteInterestRatePct": 8.5,
+  "quoteModelVarianceToleranceRatio": 0.02,
+  "quoteModelVarianceModerateRatio": 0.08,
+  "highDeductionWarningRatioOfSalary": 0.8,
+  "roundingPrecisionDp": 2,
+  "currency": "AUD",
+  "source": "Internal modelling defaults for estimate-only quote comparison."
+}
