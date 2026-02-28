@@ -28,10 +28,12 @@ export default function CalculatorsIndexPage() {
           <article className={styles.card}>
             <h2 className={styles.name}>Novated Lease</h2>
             <p className={styles.desc}>
-              Reserved route structure for the target calculator in later
-              milestones.
+              Estimate-focused novated lease calculator with shareable URL state
+              and full assumptions breakdown.
             </p>
-            <span className={styles.mutedPill}>Coming soon</span>
+            <Link className={styles.link} href="/calculators/novated-lease">
+              Open Calculator
+            </Link>
           </article>
         </section>
       </div>
