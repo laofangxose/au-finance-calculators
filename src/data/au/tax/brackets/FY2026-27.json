@@ -1,0 +1,38 @@
+{
+  "financialYear": "FY2026-27",
+  "resident": true,
+  "currency": "AUD",
+  "brackets": [
+    {
+      "threshold": 0,
+      "upperThreshold": 18200,
+      "baseTax": 0,
+      "marginalRate": 0
+    },
+    {
+      "threshold": 18201,
+      "upperThreshold": 45000,
+      "baseTax": 0,
+      "marginalRate": 0.15
+    },
+    {
+      "threshold": 45001,
+      "upperThreshold": 135000,
+      "baseTax": 4020,
+      "marginalRate": 0.3
+    },
+    {
+      "threshold": 135001,
+      "upperThreshold": 190000,
+      "baseTax": 31020,
+      "marginalRate": 0.37
+    },
+    {
+      "threshold": 190001,
+      "upperThreshold": null,
+      "baseTax": 51370,
+      "marginalRate": 0.45
+    }
+  ],
+  "source": "https://www.ato.gov.au/about-ato/new-legislation/in-detail/individuals/personal-income-tax-new-tax-cuts-for-every-australian-taxpayer"
+}

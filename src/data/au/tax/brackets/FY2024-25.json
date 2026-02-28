@@ -1,0 +1,38 @@
+{
+  "financialYear": "FY2024-25",
+  "resident": true,
+  "currency": "AUD",
+  "brackets": [
+    {
+      "threshold": 0,
+      "upperThreshold": 18200,
+      "baseTax": 0,
+      "marginalRate": 0
+    },
+    {
+      "threshold": 18201,
+      "upperThreshold": 45000,
+      "baseTax": 0,
+      "marginalRate": 0.16
+    },
+    {
+      "threshold": 45001,
+      "upperThreshold": 135000,
+      "baseTax": 4288,
+      "marginalRate": 0.3
+    },
+    {
+      "threshold": 135001,
+      "upperThreshold": 190000,
+      "baseTax": 31288,
+      "marginalRate": 0.37
+    },
+    {
+      "threshold": 190001,
+      "upperThreshold": null,
+      "baseTax": 51638,
+      "marginalRate": 0.45
+    }
+  ],
+  "source": "https://www.ato.gov.au/rates/individual-income-tax-rates/"
+}

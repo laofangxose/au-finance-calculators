@@ -1,0 +1,12 @@
+{
+  "name": "ATO Car Lease Residual Percentages",
+  "effectiveLifeYears": 8,
+  "residualPercentByLeaseYear": {
+    "1": 0.6563,
+    "2": 0.5625,
+    "3": 0.4688,
+    "4": 0.375,
+    "5": 0.2813
+  },
+  "source": "ATO ID 2002/1004 (industry-standard schedule)"
+}

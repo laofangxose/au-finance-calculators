@@ -1,0 +1,11 @@
+{
+  "method": "statutory_formula",
+  "statutoryRate": 0.2,
+  "defaultFbtYearDays": 365,
+  "evExemption": {
+    "enabled": true,
+    "phevGeneralExemptionEndedOn": "2025-04-01",
+    "requiresTransitionalEligibility": true
+  },
+  "source": "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/cars-and-fbt/taxable-value-of-a-car-fringe-benefit"
+}
