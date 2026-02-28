@@ -147,6 +147,18 @@ export type CashflowSummary = {
   perPayNetBenefitEstimate: number;
 };
 
+export type BuyOutrightComparisonBreakdown = {
+  monthlyEquivalentCost: number;
+  totalCashOutlayOverTerm: number;
+  novatedMonthlyOutOfPocket: number;
+  novatedTotalCostOverTerm: number;
+  monthlyDifference: number;
+  totalCostDifferenceOverTerm: number;
+  opportunityCostRateAssumed: number;
+  estimatedForgoneEarningsOverTerm: number;
+  estimatedLctIncludedInPurchasePrice: number;
+};
+
 export type AppliedAssumption = {
   key: string;
   label: string;
@@ -176,6 +188,7 @@ export type NovatedLeaseCalculatorOutput = {
   packaging: PackagingBreakdown | null;
   taxComparison: TaxComparisonBreakdown | null;
   cashflow: CashflowSummary | null;
+  buyOutrightComparison: BuyOutrightComparisonBreakdown | null;
   assumptions: AppliedAssumption[];
   inferredParameters: InferredParameter[];
 };

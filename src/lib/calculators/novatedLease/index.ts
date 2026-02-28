@@ -17,6 +17,7 @@ export {
 } from "./presentation";
 export type {
   AppliedAssumption,
+  BuyOutrightComparisonBreakdown,
   CashflowSummary,
   FbtBreakdown,
   FilingProfile,

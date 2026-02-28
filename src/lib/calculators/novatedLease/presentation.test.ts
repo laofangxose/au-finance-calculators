@@ -49,7 +49,7 @@ describe("getBuyOutrightComparison", () => {
   it("defaults opportunity-cost rate to 0%", () => {
     const input = buildBaseInput();
     const result = calculateNovatedLease(input);
-    const comparison = getBuyOutrightComparison(input, result);
+    const comparison = getBuyOutrightComparison(result);
 
     expect(comparison).not.toBeNull();
     expect(comparison?.opportunityCostRateAssumed).toBe(0);
@@ -59,21 +59,68 @@ describe("getBuyOutrightComparison", () => {
   it("includes forgone earnings when opportunity-cost rate is provided", () => {
     const baseInput = buildBaseInput();
     const baseResult = calculateNovatedLease(baseInput);
-    const baseComparison = getBuyOutrightComparison(baseInput, baseResult);
+    const baseComparison = getBuyOutrightComparison(baseResult);
 
     const withOpportunity = buildBaseInput();
     withOpportunity.comparison = { opportunityCostRatePct: 5 };
     const withOpportunityResult = calculateNovatedLease(withOpportunity);
-    const withOpportunityComparison = getBuyOutrightComparison(
-      withOpportunity,
-      withOpportunityResult,
-    );
+    const withOpportunityComparison = getBuyOutrightComparison(withOpportunityResult);
 
     expect(withOpportunityComparison).not.toBeNull();
     expect(withOpportunityComparison?.opportunityCostRateAssumed).toBe(5);
     expect(withOpportunityComparison?.estimatedForgoneEarningsOverTerm).toBe(7500);
-    expect(withOpportunityComparison?.monthlyEquivalentCost ?? 0).toBeGreaterThan(
-      baseComparison?.monthlyEquivalentCost ?? 0,
+    expect(withOpportunityComparison?.novatedTotalCostOverTerm ?? 0).toBeLessThan(
+      baseComparison?.novatedTotalCostOverTerm ?? 0,
+    );
+  });
+
+  it("uses requested novated formula: repayments - tax savings + residual - opportunity cost", () => {
+    const input = buildBaseInput();
+    input.comparison = { opportunityCostRatePct: 5 };
+    const result = calculateNovatedLease(input);
+    const comparison = getBuyOutrightComparison(result);
+
+    const termYears = input.finance.termMonths / 12;
+    const opportunityCost =
+      input.vehicle.purchasePriceInclGst *
+      ((input.comparison?.opportunityCostRatePct ?? 0) / 100) *
+      termYears;
+    const expectedTotal =
+      (result.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) -
+      (result.taxComparison?.taxAndLevySavings ?? 0) +
+      (result.lease?.residualValue ?? 0) -
+      opportunityCost;
+
+    expect(comparison).not.toBeNull();
+    expect(comparison?.novatedTotalCostOverTerm).toBeCloseTo(expectedTotal, 2);
+  });
+
+  it("includes residual value in novated total cost over term", () => {
+    const input = buildBaseInput();
+    const result = calculateNovatedLease(input);
+    const comparison = getBuyOutrightComparison(result);
+
+    const expectedTotal =
+      (result.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) -
+      (result.taxComparison?.taxAndLevySavings ?? 0) +
+      (result.lease?.residualValue ?? 0);
+
+    expect(comparison).not.toBeNull();
+    expect(comparison?.novatedTotalCostOverTerm).toBeCloseTo(expectedTotal, 2);
+  });
+
+  it("uses car price only for buy-outright total", () => {
+    const input = buildBaseInput();
+    input.finance.establishmentFee = 12345;
+    input.runningCosts.annualFuelOrElectricity = 99999;
+
+    const result = calculateNovatedLease(input);
+    const comparison = getBuyOutrightComparison(result);
+
+    expect(comparison).not.toBeNull();
+    expect(comparison?.totalCashOutlayOverTerm).toBeCloseTo(
+      input.vehicle.purchasePriceInclGst,
+      2,
     );
   });
 });

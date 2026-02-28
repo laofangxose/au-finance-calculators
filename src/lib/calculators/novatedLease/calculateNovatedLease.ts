@@ -10,6 +10,7 @@ import taxFy202627 from "../../../data/au/tax/brackets/FY2026-27.json";
 import lctThresholds from "../../../data/au/lct/thresholds.json";
 import type {
   AppliedAssumption,
+  BuyOutrightComparisonBreakdown,
   FbtBreakdown,
   InferredParameter,
   LeaseRepaymentBreakdown,
@@ -183,6 +184,73 @@ function isEvFbtExempt(input: NovatedLeaseCalculatorInput): {
 
 function errorIssues(issues: ValidationIssue[]): ValidationIssue[] {
   return issues.filter((issue) => issue.severity === "error");
+}
+
+function computeBuyOutrightComparison(params: {
+  input: NovatedLeaseCalculatorInput;
+  lease: LeaseRepaymentBreakdown;
+  taxComparison: TaxComparisonBreakdown;
+}): BuyOutrightComparisonBreakdown {
+  const { input, lease, taxComparison } = params;
+  const termMonths = input.finance.termMonths;
+  const termYears = termMonths / 12;
+  const useFuelEfficientThreshold =
+    input.vehicle.vehicleType === "bev" || input.vehicle.vehicleType === "fcev";
+  const lctThreshold =
+    lctThresholds.thresholdsByFinancialYear[input.taxOptions.incomeTaxYear][
+      useFuelEfficientThreshold ? "fuelEfficient" : "other"
+    ];
+  const estimatedLctIncludedInPurchasePrice =
+    input.vehicle.purchasePriceInclGst > lctThreshold
+      ? (input.vehicle.purchasePriceInclGst - lctThreshold) *
+        (10 / 11) *
+        lctThresholds.rate
+      : 0;
+
+  const opportunityCostRateRaw = input.comparison?.opportunityCostRatePct;
+  const opportunityCostRateAssumed =
+    typeof opportunityCostRateRaw === "number" &&
+    Number.isFinite(opportunityCostRateRaw) &&
+    opportunityCostRateRaw >= 0
+      ? opportunityCostRateRaw
+      : 0;
+  const estimatedForgoneEarningsOverTerm =
+    input.vehicle.purchasePriceInclGst *
+    (opportunityCostRateAssumed / 100) *
+    termYears;
+
+  // Requested decision model:
+  // outright total = car price only
+  const totalCashOutlayOverTerm = input.vehicle.purchasePriceInclGst;
+  const monthlyEquivalentCost = totalCashOutlayOverTerm / termMonths;
+
+  // novated total = repayments - tax savings + residual - opportunity cost
+  const novatedTotalCostOverTerm =
+    lease.totalFinanceRepaymentsExcludingResidual -
+    taxComparison.taxAndLevySavings +
+    lease.residualValue -
+    estimatedForgoneEarningsOverTerm;
+  const novatedMonthlyOutOfPocket = novatedTotalCostOverTerm / termMonths;
+
+  return {
+    monthlyEquivalentCost: roundCurrency(monthlyEquivalentCost),
+    totalCashOutlayOverTerm: roundCurrency(totalCashOutlayOverTerm),
+    novatedMonthlyOutOfPocket: roundCurrency(novatedMonthlyOutOfPocket),
+    novatedTotalCostOverTerm: roundCurrency(novatedTotalCostOverTerm),
+    monthlyDifference: roundCurrency(
+      novatedMonthlyOutOfPocket - monthlyEquivalentCost,
+    ),
+    totalCostDifferenceOverTerm: roundCurrency(
+      novatedTotalCostOverTerm - totalCashOutlayOverTerm,
+    ),
+    opportunityCostRateAssumed: roundCurrency(opportunityCostRateAssumed),
+    estimatedForgoneEarningsOverTerm: roundCurrency(
+      estimatedForgoneEarningsOverTerm,
+    ),
+    estimatedLctIncludedInPurchasePrice: roundCurrency(
+      estimatedLctIncludedInPurchasePrice,
+    ),
+  };
 }
 
 export function calculateNovatedLease(
@@ -492,6 +560,7 @@ export function calculateNovatedLease(
       packaging: null,
       taxComparison: null,
       cashflow: null,
+      buyOutrightComparison: null,
       assumptions,
       inferredParameters,
     };
@@ -607,6 +676,7 @@ export function calculateNovatedLease(
       packaging: null,
       taxComparison: null,
       cashflow: null,
+      buyOutrightComparison: null,
       assumptions,
       inferredParameters,
     };
@@ -676,6 +746,12 @@ export function calculateNovatedLease(
     ),
   };
 
+  const buyOutrightComparison = computeBuyOutrightComparison({
+    input,
+    lease,
+    taxComparison,
+  });
+
   const quotedAnnual = input.quoteContext?.quotedAnnualDeductionTotal;
   if (valueIsFiniteNumber(quotedAnnual)) {
     const diff = Math.abs(annualPackageCostBeforeEcm - quotedAnnual);
@@ -732,6 +808,7 @@ export function calculateNovatedLease(
     packaging,
     taxComparison,
     cashflow,
+    buyOutrightComparison,
     assumptions,
     inferredParameters,
   };

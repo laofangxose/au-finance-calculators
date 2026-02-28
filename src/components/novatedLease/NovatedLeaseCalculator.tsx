@@ -202,7 +202,6 @@ export function NovatedLeaseCalculator() {
   const [calculatedState, setCalculatedState] = useState<{
     snapshot: string;
     result: ReturnType<typeof calculateNovatedLease>;
-    comparison: ReturnType<typeof getBuyOutrightComparison>;
   } | null>(() => {
     if (hasUiErrors) {
       return null;
@@ -211,7 +210,6 @@ export function NovatedLeaseCalculator() {
     return {
       snapshot: currentSnapshot,
       result: initialResult,
-      comparison: getBuyOutrightComparison(adaptedInput, initialResult),
     };
   });
 
@@ -223,18 +221,16 @@ export function NovatedLeaseCalculator() {
       return;
     }
     const nextEngineResult = calculateNovatedLease(adaptedInput);
-    const nextComparison = getBuyOutrightComparison(adaptedInput, nextEngineResult);
     setCalculatedState({
       snapshot: currentSnapshot,
       result: nextEngineResult,
-      comparison: nextComparison,
     });
   };
   const canCalculate =
     !hasUiErrors && (hasPendingRecalculation || calculatedState === null);
 
   const engineResult = calculatedState?.result ?? null;
-  const comparison = calculatedState?.comparison ?? null;
+  const comparison = engineResult ? getBuyOutrightComparison(engineResult) : null;
 
   const engineFieldErrors =
     engineResult && !hasPendingRecalculation
@@ -534,26 +530,29 @@ export function NovatedLeaseCalculator() {
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Monthly difference</p>
+                    <p className={styles.headlineLabel}>Novated total cost (term)</p>
                     <p className={styles.headlineValue}>
-                      {currencyFormatter.format(comparison.monthlyDifference)}
+                      {currencyFormatter.format(comparison.novatedTotalCostOverTerm)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Total term difference</p>
+                    <p className={styles.headlineLabel}>Total difference (term)</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.totalCostDifferenceOverTerm)}
                     </p>
                   </div>
                 </div>
                 <ul className={styles.explainList}>
-                  <li>{differenceLabel(comparison.monthlyDifference)} based on current assumptions.</li>
+                  <li>
+                    {differenceLabel(comparison.totalCostDifferenceOverTerm)} based on total
+                    cost over the full lease term.
+                  </li>
                   <li>
                     Tax effect this year:{" "}
                     {currencyFormatter.format(engineResult.taxComparison?.taxAndLevySavings ?? 0)}.
                   </li>
                   <li>
-                    Buy-out comparison assumes opportunity cost rate{" "}
+                    Comparison applies savings interest rate{" "}
                     {numberFormatter.format(comparison.opportunityCostRateAssumed)}%.
                   </li>
                 </ul>
@@ -591,6 +590,20 @@ export function NovatedLeaseCalculator() {
                           )}
                         </span>
                       </div>
+                      <div className={styles.row}>
+                        <span>Total cost over term (incl. residual)</span>
+                        <span className={styles.value}>
+                          {currencyFormatter.format(comparison.novatedTotalCostOverTerm)}
+                        </span>
+                      </div>
+                      <div className={styles.row}>
+                        <span>Opportunity cost benefit (term)</span>
+                        <span className={styles.value}>
+                          {currencyFormatter.format(
+                            comparison.estimatedForgoneEarningsOverTerm,
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </article>
                   <article className={styles.compareCard}>
@@ -606,14 +619,6 @@ export function NovatedLeaseCalculator() {
                         <span>Total cash outlay (term)</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(comparison.totalCashOutlayOverTerm)}
-                        </span>
-                      </div>
-                      <div className={styles.row}>
-                        <span>Forgone savings interest (term)</span>
-                        <span className={styles.value}>
-                          {currencyFormatter.format(
-                            comparison.estimatedForgoneEarningsOverTerm,
-                          )}
                         </span>
                       </div>
                       <div className={styles.row}>

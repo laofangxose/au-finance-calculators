@@ -1,12 +1,7 @@
-import type { NovatedLeaseCalculatorInput } from "./types";
-import assumptionsConfig from "../../../data/au/novated-lease/assumptions.json";
-import lctThresholds from "../../../data/au/lct/thresholds.json";
-import type { NovatedLeaseCalculatorOutput } from "./types";
-
-function roundCurrency(value: number): number {
-  const factor = 10 ** assumptionsConfig.roundingPrecisionDp;
-  return Math.round(value * factor) / factor;
-}
+import type {
+  BuyOutrightComparisonBreakdown,
+  NovatedLeaseCalculatorOutput,
+} from "./types";
 
 export type NovatedLeaseHeadlineMetrics = {
   monthlyOutOfPocket: number;
@@ -14,104 +9,28 @@ export type NovatedLeaseHeadlineMetrics = {
   residualValue: number;
 };
 
-export type BuyOutrightComparison = {
-  monthlyEquivalentCost: number;
-  totalCashOutlayOverTerm: number;
-  novatedMonthlyOutOfPocket: number;
-  monthlyDifference: number;
-  totalCostDifferenceOverTerm: number;
-  opportunityCostRateAssumed: number;
-  estimatedForgoneEarningsOverTerm: number;
-  estimatedLctIncludedInPurchasePrice: number;
-};
+export type BuyOutrightComparison = BuyOutrightComparisonBreakdown;
 
 export function getNovatedLeaseHeadlineMetrics(
   result: NovatedLeaseCalculatorOutput,
 ): NovatedLeaseHeadlineMetrics | null {
-  if (!result.ok || !result.packaging || !result.taxComparison || !result.lease) {
+  if (!result.ok || !result.buyOutrightComparison || !result.lease) {
     return null;
   }
 
-  const annualOutOfPocket =
-    result.packaging.annualPreTaxDeduction + result.packaging.annualPostTaxDeduction;
-
   return {
-    monthlyOutOfPocket: roundCurrency(annualOutOfPocket / 12),
-    totalEffectiveAnnualCost: roundCurrency(
-      result.packaging.annualPackageCostBeforeEcm - result.taxComparison.taxAndLevySavings,
-    ),
+    monthlyOutOfPocket: result.buyOutrightComparison.novatedMonthlyOutOfPocket,
+    totalEffectiveAnnualCost:
+      result.buyOutrightComparison.novatedMonthlyOutOfPocket * 12,
     residualValue: result.lease.residualValue,
   };
 }
 
 export function getBuyOutrightComparison(
-  input: NovatedLeaseCalculatorInput,
   result: NovatedLeaseCalculatorOutput,
 ): BuyOutrightComparison | null {
-  if (!result.ok || !result.packaging || !result.taxComparison || !result.lease) {
+  if (!result.ok) {
     return null;
   }
-
-  const useFuelEfficientThreshold =
-    input.vehicle.vehicleType === "bev" || input.vehicle.vehicleType === "fcev";
-  const lctThreshold =
-    lctThresholds.thresholdsByFinancialYear[input.taxOptions.incomeTaxYear][
-      useFuelEfficientThreshold ? "fuelEfficient" : "other"
-    ];
-  const estimatedLctIncludedInPurchasePrice =
-    input.vehicle.purchasePriceInclGst > lctThreshold
-      ? (input.vehicle.purchasePriceInclGst - lctThreshold) *
-        (10 / 11) *
-        lctThresholds.rate
-      : 0;
-
-  const termMonths = input.finance.termMonths;
-  const termYears = termMonths / 12;
-  const annualRunningCosts =
-    input.runningCosts.annualRegistration +
-    input.runningCosts.annualInsurance +
-    input.runningCosts.annualMaintenance +
-    input.runningCosts.annualTyres +
-    input.runningCosts.annualFuelOrElectricity +
-    input.runningCosts.annualOtherEligibleCarExpenses;
-
-  const opportunityCostRateRaw = input.comparison?.opportunityCostRatePct;
-  const opportunityCostRateAssumed =
-    typeof opportunityCostRateRaw === "number" &&
-    Number.isFinite(opportunityCostRateRaw) &&
-    opportunityCostRateRaw >= 0
-      ? opportunityCostRateRaw
-      : 0;
-  const baseCashOutlayOverTerm =
-    input.vehicle.purchasePriceInclGst +
-    annualRunningCosts * termYears +
-    input.finance.establishmentFee;
-  const estimatedForgoneEarningsOverTerm =
-    input.vehicle.purchasePriceInclGst *
-    (opportunityCostRateAssumed / 100) *
-    termYears;
-  const totalCashOutlayOverTerm =
-    baseCashOutlayOverTerm + estimatedForgoneEarningsOverTerm;
-  const monthlyEquivalentCost = totalCashOutlayOverTerm / termMonths;
-
-  const novatedMonthlyOutOfPocket =
-    (result.packaging.annualPreTaxDeduction + result.packaging.annualPostTaxDeduction) / 12;
-  const totalCashOutlayPerMonth = totalCashOutlayOverTerm / termMonths;
-  const monthlyDifference = novatedMonthlyOutOfPocket - totalCashOutlayPerMonth;
-  const totalCostDifferenceOverTerm = monthlyDifference * termMonths;
-
-  return {
-    monthlyEquivalentCost: roundCurrency(monthlyEquivalentCost),
-    totalCashOutlayOverTerm: roundCurrency(totalCashOutlayOverTerm),
-    novatedMonthlyOutOfPocket: roundCurrency(novatedMonthlyOutOfPocket),
-    monthlyDifference: roundCurrency(monthlyDifference),
-    totalCostDifferenceOverTerm: roundCurrency(totalCostDifferenceOverTerm),
-    opportunityCostRateAssumed: roundCurrency(opportunityCostRateAssumed),
-    estimatedForgoneEarningsOverTerm: roundCurrency(
-      estimatedForgoneEarningsOverTerm,
-    ),
-    estimatedLctIncludedInPurchasePrice: roundCurrency(
-      estimatedLctIncludedInPurchasePrice,
-    ),
-  };
+  return result.buyOutrightComparison;
 }
