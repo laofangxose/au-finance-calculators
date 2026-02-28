@@ -55,6 +55,10 @@ export type NovatedLeasePackagingInput = {
   includeRunningCostsInPackage: boolean;
 };
 
+export type NovatedLeaseComparisonInput = {
+  opportunityCostRatePct?: number;
+};
+
 export type NovatedLeaseQuoteContextInput = {
   providerName?: string;
   quotedPayPeriodDeductionTotal?: number;
@@ -77,6 +81,7 @@ export type NovatedLeaseCalculatorInput = {
   filingProfile: FilingProfile;
   taxOptions: NovatedLeaseTaxOptionsInput;
   packaging: NovatedLeasePackagingInput;
+  comparison?: NovatedLeaseComparisonInput;
   quoteContext?: NovatedLeaseQuoteContextInput;
 };
 

@@ -417,4 +417,14 @@ export const novatedLeaseFieldMeta: Record<keyof NovatedLeaseFormState, FieldMet
     defaultValue: "5800",
     modes: ["quote"],
   },
+  ocr: {
+    label: "Savings Interest Rate (Optional)",
+    description:
+      "Annual rate your cash could earn if not used for an upfront car purchase.",
+    unit: "%",
+    formatRule: "Optional number >= 0",
+    validationMessage: "Enter a non-negative interest rate.",
+    defaultValue: "0",
+    modes: ["both"],
+  },
 };

@@ -125,6 +125,10 @@ export type NovatedLeasePackagingInput = {
   includeRunningCostsInPackage: boolean; // if false, only finance component packaged
 };
 
+export type NovatedLeaseComparisonInput = {
+  opportunityCostRatePct?: number; // optional annual rate for forgone earnings on upfront cash (default 0)
+};
+
 export type NovatedLeaseCalculatorInput = {
   inputMode: InputMode;
   vehicle: NovatedLeaseVehicleInput;
@@ -135,6 +139,7 @@ export type NovatedLeaseCalculatorInput = {
   filingProfile: FilingProfile;
   taxOptions: NovatedLeaseTaxOptionsInput;
   packaging: NovatedLeasePackagingInput;
+  comparison?: NovatedLeaseComparisonInput;
   quoteContext?: NovatedLeaseQuoteContextInput;
 };
 
@@ -163,6 +168,7 @@ export type NovatedLeaseQuoteContextInput = {
 - `inputMode = "detailed"` requires `finance` object and ignores `quote.quotedMonthlyLeasePayment`.
 - `inputMode = "quote"` requires `quote.quotedMonthlyLeasePayment` and may omit `finance.annualInterestRatePct`.
 - In quote mode, `finance.termMonths` is still required either from `finance.termMonths` or mapped quote metadata.
+- `comparison.opportunityCostRatePct` is optional; if not provided, comparison uses `0%` (no opportunity-cost earnings assumed).
 
 ## 2.1 User-Facing Mode Definitions (Decision-First)
 
@@ -189,6 +195,7 @@ Optional inputs:
 - upfront fees from quote
 - residual/balloon value from quote
 - split running costs into registration/insurance/maintenance/etc.
+- opportunity cost rate for cash alternative (advanced comparison assumption)
 
 Validation rules:
 
@@ -220,6 +227,7 @@ Optional inputs:
 - Medicare levy override
 - days available for private use override
 - residual override
+- opportunity cost rate for cash alternative comparison
 
 Validation rules:
 
@@ -256,6 +264,7 @@ The UI must render user-facing labels and helper text. Internal keys remain impl
 | `finance.establishmentFee` | Establishment Fee | Upfront fee added to financed amount. | AUD | 500 | detailed |
 | `finance.monthlyAccountKeepingFee` | Monthly Account Fee | Monthly account keeping fee. | AUD/month | 15 | detailed |
 | `finance.residualValueOverride` | Residual (Optional Override) | Optional balloon amount override. | AUD | empty | detailed |
+| `comparison.opportunityCostRatePct` | Savings Interest Rate (Optional) | Annual rate you could earn if cash stays invested instead of buying outright upfront. | % | 0.0 | both |
 | `packaging.includeRunningCostsInPackage` | Include Running Costs | Include yearly running costs in package estimate. | none | true | both |
 | `packaging.useEcm` | Use Employee Contribution Method | Advanced option; hidden when not relevant. | none | true | detailed |
 
@@ -280,7 +289,7 @@ For both modes, required outputs in UI order:
 
 - one-line statement on whether novated appears cheaper or more expensive
 - one-line statement of key driver (tax saving, running costs, or residual impact)
-- one-line statement of major assumption (e.g., quote-based payment used, opportunity cost set to 0%)
+- one-line statement of major assumption (e.g., quote-based payment used, savings interest rate used in buy-out comparison)
 
 ### Expandable Breakdown (progressive disclosure)
 
@@ -355,6 +364,16 @@ export type CashflowSummary = {
   perPayNetBenefitEstimate: number;
 };
 
+export type BuyOutrightComparisonBreakdown = {
+  basePurchaseAndRunningCostsOverTerm: number;
+  opportunityCostRatePctApplied: number;
+  estimatedForgoneEarningsOverTerm: number;
+  totalCashOutlayOverTermIncludingOpportunityCost: number;
+  monthlyEquivalentCostIncludingOpportunityCost: number;
+  monthlyDifferenceVsNovated: number; // novatedMonthlyOutOfPocket - buyOutrightMonthlyEquivalent
+  totalDifferenceVsNovatedOverTerm: number;
+};
+
 export type AppliedAssumption = {
   key: string;
   label: string;
@@ -384,6 +403,7 @@ export type NovatedLeaseCalculatorOutput = {
   packaging: PackagingBreakdown | null;
   taxComparison: TaxComparisonBreakdown | null;
   cashflow: CashflowSummary | null;
+  buyOutrightComparison?: BuyOutrightComparisonBreakdown | null;
   assumptions: AppliedAssumption[];
   inferredParameters: InferredParameter[];
   modeContext?: {
@@ -400,6 +420,7 @@ export type NovatedLeaseCalculatorOutput = {
 - Output must include the exact assumptions used (e.g., tax year, Medicare levy rate, statutory rate, residual source).
 - Output must include all inferred quote parameters and confidence levels.
 - Output shape remains the same across modes; only `modeContext` metadata differs.
+- If `comparison.opportunityCostRatePct` is omitted, comparison must apply `0%` and disclose this in `assumptions`.
 
 ## 4. Financial Calculation Breakdown
 
@@ -624,6 +645,32 @@ Identical logic across both modes:
 - income tax + Medicare levy calculations
 - packaging split and cashflow composition structure
 
+### 4.8 Buy Outright Opportunity-Cost Treatment
+
+Purpose:
+
+- reflect the forgone investment/savings earnings when cash is used upfront for outright purchase.
+
+Inputs:
+
+- `comparison.opportunityCostRatePct` (optional, annual percent)
+- default if omitted: `0%`
+
+Formulas (MVP comparison model):
+
+- `baseOutrightCostOverTerm = vehiclePrice + (annualRunningCosts * termYears) + upfrontFees`
+- `opportunityRate = comparison.opportunityCostRatePct / 100` (or `0` if omitted)
+- `estimatedForgoneEarningsOverTerm = vehiclePrice * opportunityRate * termYears` (simple-interest approximation)
+- `totalOutrightCostWithOpportunity = baseOutrightCostOverTerm + estimatedForgoneEarningsOverTerm`
+- `buyOutrightMonthlyEquivalent = totalOutrightCostWithOpportunity / termMonths`
+- `monthlyDifferenceVsNovated = novatedMonthlyOutOfPocket - buyOutrightMonthlyEquivalent`
+- `totalDifferenceVsNovatedOverTerm = monthlyDifferenceVsNovated * termMonths`
+
+Current default behavior (explicit):
+
+- if user does not provide a savings interest rate, the calculator assumes `0%`.
+- therefore, no opportunity-cost earnings are added in default comparison mode.
+
 ## 5. Required Data Tables
 
 All values must be stored in `src/data/**` (not hardcoded in calculation logic).
@@ -726,6 +773,7 @@ These must be displayed in the UI assumptions section.
 14. **Unknown-interest fallback**: if internal rate cannot be inferred reliably, default assumed rate is used and surfaced as low confidence.
 15. **Fee decomposition fallback**: opaque bundled quote fees are allocated using configurable defaults for upfront vs recurring fees.
 16. **Variance expected**: quote-vs-model mismatch is normal when provider margins/embedded services are undisclosed.
+17. **Buy-out opportunity cost default**: unless user sets a savings interest rate, buy-outright comparison assumes `0%` opportunity-cost earnings.
 
 ## 7. Edge Cases
 
@@ -748,6 +796,8 @@ Implementation must handle (and test) at least these:
 15. Quote residual provided as percentage only.
 16. Quote includes unknown bundled services (e.g. maintenance programs) not itemized.
 17. Back-solved implied rate is implausibly high/low (trigger warning and fallback).
+18. Opportunity-cost rate omitted -> comparison uses 0% and must disclose assumption.
+19. Opportunity-cost rate > 0 -> buy-outright monthly equivalent should increase versus 0% baseline.
 
 ## 8. Validation Rules
 
@@ -788,6 +838,7 @@ Errors:
 - `daysAvailableForPrivateUseInFbtYear` must be between `0` and `fbtYearDays`
 - `fbtYearDays` must be `365` or `366`
 - `quotedMonthlyLeasePayment > 0` (Quote Mode)
+- `comparison.opportunityCostRatePct`, if provided, must be finite and `>= 0`
 
 ### 8.3 Residual Validation
 

@@ -16,23 +16,10 @@ export function applyInputModeAdapter(
     return input;
   }
 
-  const quotedMonthlyLeasePayment = parseNumber(state.qmp);
   const quotedMonthlyAdminFee = parseNumber(state.qmf);
-  const annualRunningCosts =
-    input.runningCosts.annualRegistration +
-    input.runningCosts.annualInsurance +
-    input.runningCosts.annualMaintenance +
-    input.runningCosts.annualTyres +
-    input.runningCosts.annualFuelOrElectricity +
-    input.runningCosts.annualOtherEligibleCarExpenses;
-
   const monthlyAdminFee = Number.isFinite(quotedMonthlyAdminFee)
     ? quotedMonthlyAdminFee
     : input.finance.monthlyAccountKeepingFee;
-  const quotedAnnualDeductionTotal =
-    quotedMonthlyLeasePayment * 12 +
-    monthlyAdminFee * 12 +
-    (input.packaging.includeRunningCostsInPackage ? annualRunningCosts : 0);
 
   return {
     ...input,
@@ -45,9 +32,7 @@ export function applyInputModeAdapter(
       ...input.quoteContext,
       quoteListsInterestRate: false,
       quotedPayPeriodDeductionTotal: undefined,
-      quotedAnnualDeductionTotal: Number.isFinite(quotedAnnualDeductionTotal)
-        ? quotedAnnualDeductionTotal
-        : input.quoteContext?.quotedAnnualDeductionTotal,
+      quotedAnnualDeductionTotal: input.quoteContext?.quotedAnnualDeductionTotal,
       quotedMonthlyAdminFee: Number.isFinite(monthlyAdminFee)
         ? monthlyAdminFee
         : input.quoteContext?.quotedMonthlyAdminFee,

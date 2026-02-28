@@ -49,6 +49,7 @@ export type NovatedLeaseFormState = {
   qfu: string;
   qmp: string;
   rat: string;
+  ocr: string;
 };
 
 export const NOVATED_LEASE_QUERY_PARAM_MAP = {
@@ -96,6 +97,7 @@ export const NOVATED_LEASE_QUERY_PARAM_MAP = {
   qfu: "quoteContext.quoteIncludesFuel",
   qmp: "quote.quotedMonthlyLeasePayment",
   rat: "runningCosts.annualTotal",
+  ocr: "comparison.opportunityCostRatePct",
 } as const;
 
 export const DEFAULT_NOVATED_LEASE_FORM_STATE: NovatedLeaseFormState = {
@@ -143,6 +145,7 @@ export const DEFAULT_NOVATED_LEASE_FORM_STATE: NovatedLeaseFormState = {
   qfu: "1",
   qmp: "1300",
   rat: "5800",
+  ocr: "0",
 };
 
 function parseBoolean(value: string): boolean {
@@ -248,6 +251,9 @@ export function toNovatedLeaseInput(
       useEcm: parseBoolean(state.ue),
       evFbtExemptionToggle: parseBoolean(state.evt),
       includeRunningCostsInPackage: parseBoolean(state.irc),
+    },
+    comparison: {
+      opportunityCostRatePct: parseOptionalNumber(state.ocr),
     },
     quoteContext:
       state.qn.trim() === "" &&
@@ -398,6 +404,16 @@ export function validateNovatedLeaseFormState(
       applyFirstError(errors, "fsr", "FBT statutory rate must be within 0..1.");
     }
   }
+  if (state.ocr.trim() !== "") {
+    const n = parseNumber(state.ocr);
+    if (!Number.isFinite(n) || n < 0) {
+      applyFirstError(
+        errors,
+        "ocr",
+        "Savings interest rate must be a non-negative number.",
+      );
+    }
+  }
 
   if (state.rvo.trim() !== "") {
     const residual = parseNumber(state.rvo);
@@ -466,6 +482,7 @@ const fieldToQueryKey: Partial<Record<string, keyof NovatedLeaseFormState>> = {
   "runningCosts.annualTyres": "rt",
   "runningCosts.annualFuelOrElectricity": "rf",
   "runningCosts.annualOtherEligibleCarExpenses": "ro",
+  "comparison.opportunityCostRatePct": "ocr",
 };
 
 export function mapEngineIssuesToFieldErrors(

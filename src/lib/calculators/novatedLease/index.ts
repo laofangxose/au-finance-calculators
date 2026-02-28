@@ -23,6 +23,7 @@ export type {
   InferredParameter,
   LeaseRepaymentBreakdown,
   NovatedLeaseCalculatorInput,
+  NovatedLeaseComparisonInput,
   NovatedLeaseCalculatorOutput,
   NovatedLeaseFinanceInput,
   NovatedLeasePackagingInput,

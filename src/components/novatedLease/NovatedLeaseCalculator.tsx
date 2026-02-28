@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useRef,
+  useState,
+  type FocusEvent,
+} from "react";
 import { novatedLeaseGlossary } from "@/content/glossary";
 import { CalculatorPage } from "@/components/calculator/CalculatorPage";
 import {
@@ -167,7 +172,25 @@ function differenceLabel(value: number): string {
   return "Costs are similar";
 }
 
+function toFriendlyIssueMessage(issue: { code: string; message: string }): string {
+  const mapped: Record<string, string> = {
+    QUOTE_INTEREST_RATE_INFERRED:
+      "Your quote does not include an interest rate, so this estimate uses a standard fallback assumption.",
+    QUOTE_MODEL_VARIANCE_MODERATE:
+      "Your quote and this estimate are somewhat different. This is common when quote fees and assumptions differ.",
+    QUOTE_MODEL_VARIANCE_HIGH:
+      "Your quote and this estimate are quite different. Check included fees and assumptions for a closer comparison.",
+    HIGH_DEDUCTION_RATIO:
+      "The deductions look high compared with salary. Please review your inputs and assumptions.",
+    NEGATIVE_PACKAGED_TAXABLE_INCOME:
+      "These inputs would reduce taxable income below zero. Please adjust salary or package amounts.",
+  };
+  return mapped[issue.code] ?? issue.message;
+}
+
 export function NovatedLeaseCalculator() {
+  const formRef = useRef<HTMLDivElement | null>(null);
+  const [isEditingInputs, setIsEditingInputs] = useState(false);
   const [state, setState] = useQueryState(DEFAULT_NOVATED_LEASE_FORM_STATE);
   const normalizedState = normalizeNovatedLeaseFormState(state);
   const uiFieldErrors = validateNovatedLeaseFormState(normalizedState);
@@ -175,12 +198,53 @@ export function NovatedLeaseCalculator() {
 
   const baseInput = toNovatedLeaseInput(normalizedState);
   const adaptedInput = applyInputModeAdapter(normalizedState, baseInput);
-  const engineResult = hasUiErrors ? null : calculateNovatedLease(adaptedInput);
-  const engineFieldErrors = engineResult
-    ? mapEngineIssuesToFieldErrors(engineResult.validationIssues)
-    : {};
+  const currentSnapshot = JSON.stringify(normalizedState);
+  const [calculatedState, setCalculatedState] = useState<{
+    snapshot: string;
+    result: ReturnType<typeof calculateNovatedLease>;
+    comparison: ReturnType<typeof getBuyOutrightComparison>;
+  } | null>(() => {
+    if (hasUiErrors) {
+      return null;
+    }
+    const initialResult = calculateNovatedLease(adaptedInput);
+    return {
+      snapshot: currentSnapshot,
+      result: initialResult,
+      comparison: getBuyOutrightComparison(adaptedInput, initialResult),
+    };
+  });
+
+  const hasPendingRecalculation =
+    calculatedState !== null && calculatedState.snapshot !== currentSnapshot;
+
+  const runCalculation = () => {
+    if (hasUiErrors) {
+      return;
+    }
+    const nextEngineResult = calculateNovatedLease(adaptedInput);
+    const nextComparison = getBuyOutrightComparison(adaptedInput, nextEngineResult);
+    setCalculatedState({
+      snapshot: currentSnapshot,
+      result: nextEngineResult,
+      comparison: nextComparison,
+    });
+  };
+
+  const onRefreshClick = () => {
+    if (!isEditingInputs && hasPendingRecalculation && !hasUiErrors) {
+      runCalculation();
+    }
+  };
+
+  const engineResult = calculatedState?.result ?? null;
+  const comparison = calculatedState?.comparison ?? null;
+
+  const engineFieldErrors =
+    engineResult && !hasPendingRecalculation
+      ? mapEngineIssuesToFieldErrors(engineResult.validationIssues)
+      : {};
   const fieldErrors = mergeFieldErrors(uiFieldErrors, engineFieldErrors);
-  const comparison = engineResult ? getBuyOutrightComparison(adaptedInput, engineResult) : null;
 
   const mode = normalizedState.im;
   const isDetailed = mode === "detailed";
@@ -194,14 +258,47 @@ export function NovatedLeaseCalculator() {
     );
   };
 
-  const issues = engineResult?.validationIssues ?? [];
+  const onFormFocusCapture = (event: FocusEvent<HTMLDivElement>) => {
+    const target = event.target;
+    if (
+      target instanceof HTMLElement &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "SELECT" ||
+        target.tagName === "TEXTAREA")
+    ) {
+      setIsEditingInputs(true);
+    }
+  };
+
+  const onFormBlurCapture = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      const active = document.activeElement;
+      const isStillInside = Boolean(
+        formRef.current && active && formRef.current.contains(active),
+      );
+      if (!isStillInside) {
+        setIsEditingInputs(false);
+      }
+    });
+  };
+
+  const issues =
+    engineResult && !hasPendingRecalculation ? engineResult.validationIssues : [];
 
   return (
     <CalculatorPage
       title="Novated Lease Calculator"
       description="Use Quote mode for a quick decision. Use Detailed mode for advanced assumptions."
       form={
-        <div className={styles.stack}>
+        <div
+          ref={formRef}
+          className={styles.stack}
+          onFocusCapture={onFormFocusCapture}
+          onBlurCapture={onFormBlurCapture}
+        >
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Input Style</h3>
             <SelectField
@@ -282,6 +379,14 @@ export function NovatedLeaseCalculator() {
                   { value: "FY2025-26", label: "FY2025-26" },
                   { value: "FY2026-27", label: "FY2026-27" },
                 ]}
+              />
+              <TextField
+                name="ocr"
+                state={normalizedState}
+                errors={fieldErrors}
+                onChange={onChange}
+                type="number"
+                step="0.01"
               />
             </div>
           </section>
@@ -368,13 +473,46 @@ export function NovatedLeaseCalculator() {
       }
       results={
         <div className={styles.summary}>
+          {isEditingInputs ? (
+            <div className={styles.issueWarning}>
+              Results are out of date while you edit. Click anywhere to update when done.
+            </div>
+          ) : null}
+          {!isEditingInputs && hasPendingRecalculation && !hasUiErrors ? (
+            <div
+              className={styles.issueWarning}
+              role="button"
+              tabIndex={0}
+              onClick={onRefreshClick}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onRefreshClick();
+                }
+              }}
+            >
+              Results are out of date. Click anywhere here to update.
+            </div>
+          ) : null}
+          {!isEditingInputs &&
+          !hasUiErrors &&
+          !engineResult ? (
+            <div className={styles.issueWarning}>
+              Ready to calculate with current inputs.
+              <div>
+                <button className={styles.calculateBtn} type="button" onClick={runCalculation}>
+                  Calculate
+                </button>
+              </div>
+            </div>
+          ) : null}
           {hasUiErrors ? (
             <div className={styles.issueError}>
               Some inputs need attention before results can be shown.
             </div>
           ) : null}
 
-          {!hasUiErrors && engineResult && comparison ? (
+          {engineResult && comparison ? (
             <>
               <section className={styles.executiveSection}>
                 <h3 className={styles.execTitle}>Executive Summary</h3>
@@ -464,6 +602,14 @@ export function NovatedLeaseCalculator() {
                         <span>Total cash outlay (term)</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(comparison.totalCashOutlayOverTerm)}
+                        </span>
+                      </div>
+                      <div className={styles.row}>
+                        <span>Forgone savings interest (term)</span>
+                        <span className={styles.value}>
+                          {currencyFormatter.format(
+                            comparison.estimatedForgoneEarningsOverTerm,
+                          )}
                         </span>
                       </div>
                       <div className={styles.row}>
@@ -578,7 +724,7 @@ export function NovatedLeaseCalculator() {
                           : styles.issueWarning
                       }
                     >
-                      <strong>{issue.code}</strong>: {issue.message}
+                      {toFriendlyIssueMessage(issue)}
                     </div>
                   ))}
                 </div>

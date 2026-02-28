@@ -21,6 +21,7 @@ export type BuyOutrightComparison = {
   monthlyDifference: number;
   totalCostDifferenceOverTerm: number;
   opportunityCostRateAssumed: number;
+  estimatedForgoneEarningsOverTerm: number;
   estimatedLctIncludedInPurchasePrice: number;
 };
 
@@ -74,11 +75,23 @@ export function getBuyOutrightComparison(
     input.runningCosts.annualFuelOrElectricity +
     input.runningCosts.annualOtherEligibleCarExpenses;
 
-  const opportunityCostRateAssumed = 0;
-  const totalCashOutlayOverTerm =
+  const opportunityCostRateRaw = input.comparison?.opportunityCostRatePct;
+  const opportunityCostRateAssumed =
+    typeof opportunityCostRateRaw === "number" &&
+    Number.isFinite(opportunityCostRateRaw) &&
+    opportunityCostRateRaw >= 0
+      ? opportunityCostRateRaw
+      : 0;
+  const baseCashOutlayOverTerm =
     input.vehicle.purchasePriceInclGst +
     annualRunningCosts * termYears +
     input.finance.establishmentFee;
+  const estimatedForgoneEarningsOverTerm =
+    input.vehicle.purchasePriceInclGst *
+    (opportunityCostRateAssumed / 100) *
+    termYears;
+  const totalCashOutlayOverTerm =
+    baseCashOutlayOverTerm + estimatedForgoneEarningsOverTerm;
   const monthlyEquivalentCost = totalCashOutlayOverTerm / termMonths;
 
   const novatedMonthlyOutOfPocket =
@@ -93,7 +106,10 @@ export function getBuyOutrightComparison(
     novatedMonthlyOutOfPocket: roundCurrency(novatedMonthlyOutOfPocket),
     monthlyDifference: roundCurrency(monthlyDifference),
     totalCostDifferenceOverTerm: roundCurrency(totalCostDifferenceOverTerm),
-    opportunityCostRateAssumed,
+    opportunityCostRateAssumed: roundCurrency(opportunityCostRateAssumed),
+    estimatedForgoneEarningsOverTerm: roundCurrency(
+      estimatedForgoneEarningsOverTerm,
+    ),
     estimatedLctIncludedInPurchasePrice: roundCurrency(
       estimatedLctIncludedInPurchasePrice,
     ),
