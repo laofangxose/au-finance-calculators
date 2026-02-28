@@ -93,6 +93,28 @@
   opacity: 0.45;
 }
 
+.calculateBtnLarge {
+  border: 0;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  min-height: 44px;
+  min-width: 140px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.calculateBtnLarge:disabled {
+  opacity: 0.45;
+}
+
+.execActionRow {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+}
+
 .summary {
   display: grid;
   gap: 1rem;

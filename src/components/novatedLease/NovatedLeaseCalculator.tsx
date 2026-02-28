@@ -175,7 +175,7 @@ function differenceLabel(value: number): string {
 function toFriendlyIssueMessage(issue: { code: string; message: string }): string {
   const mapped: Record<string, string> = {
     QUOTE_INTEREST_RATE_INFERRED:
-      "Your quote does not include an interest rate, so this estimate uses a standard fallback assumption.",
+      "Your quote does not show an interest rate. We used a typical default rate to estimate your results. For a more accurate result, enter the quote's interest rate in Advanced options.",
     QUOTE_MODEL_VARIANCE_MODERATE:
       "Your quote and this estimate are somewhat different. This is common when quote fees and assumptions differ.",
     QUOTE_MODEL_VARIANCE_HIGH:
@@ -230,12 +230,8 @@ export function NovatedLeaseCalculator() {
       comparison: nextComparison,
     });
   };
-
-  const onRefreshClick = () => {
-    if (!isEditingInputs && hasPendingRecalculation && !hasUiErrors) {
-      runCalculation();
-    }
-  };
+  const canCalculate =
+    !hasUiErrors && (hasPendingRecalculation || calculatedState === null);
 
   const engineResult = calculatedState?.result ?? null;
   const comparison = calculatedState?.comparison ?? null;
@@ -292,6 +288,39 @@ export function NovatedLeaseCalculator() {
     <CalculatorPage
       title="Novated Lease Calculator"
       description="Use Quote mode for a quick decision. Use Detailed mode for advanced assumptions."
+      resultsTop={
+        <div className={styles.execActionRow}>
+          <button
+            className={styles.calculateBtnLarge}
+            type="button"
+            onClick={runCalculation}
+            disabled={!canCalculate}
+          >
+            Calculate
+          </button>
+          <p className={styles.muted}>
+            {canCalculate
+              ? "Inputs changed. Click Calculate."
+              : hasUiErrors
+                ? "Fix input errors to calculate."
+                : "Results are up to date."}
+          </p>
+        </div>
+      }
+      disclaimer={
+        <p>
+          The information on this website is provided for general informational
+          purposes only and does not constitute financial, taxation, legal, or
+          other professional advice. Calculations are estimates based on user
+          inputs and model assumptions, may not reflect your personal
+          circumstances, and should not be relied upon as the sole basis for
+          any decision. You should obtain independent professional advice before
+          acting. To the maximum extent permitted by applicable law, the
+          website owner, developer, and contributors disclaim all liability for
+          any loss, damage, cost, or claim arising from or connected with use
+          of, or reliance on, this website or its outputs.
+        </p>
+      }
       form={
         <div
           ref={formRef}
@@ -475,36 +504,11 @@ export function NovatedLeaseCalculator() {
         <div className={styles.summary}>
           {isEditingInputs ? (
             <div className={styles.issueWarning}>
-              Results are out of date while you edit. Click anywhere to update when done.
+              Results are out of date while you edit inputs.
             </div>
           ) : null}
           {!isEditingInputs && hasPendingRecalculation && !hasUiErrors ? (
-            <div
-              className={styles.issueWarning}
-              role="button"
-              tabIndex={0}
-              onClick={onRefreshClick}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onRefreshClick();
-                }
-              }}
-            >
-              Results are out of date. Click anywhere here to update.
-            </div>
-          ) : null}
-          {!isEditingInputs &&
-          !hasUiErrors &&
-          !engineResult ? (
-            <div className={styles.issueWarning}>
-              Ready to calculate with current inputs.
-              <div>
-                <button className={styles.calculateBtn} type="button" onClick={runCalculation}>
-                  Calculate
-                </button>
-              </div>
-            </div>
+            <div className={styles.issueWarning}>Results are out of date.</div>
           ) : null}
           {hasUiErrors ? (
             <div className={styles.issueError}>
@@ -666,11 +670,8 @@ export function NovatedLeaseCalculator() {
               </details>
 
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Assumptions and disclaimer</summary>
+                <summary className={styles.detailsTitle}>Assumptions</summary>
                 <div className={styles.detailsContent}>
-                  <p className={styles.muted}>
-                    This is an estimate only and not financial, tax, or legal advice.
-                  </p>
                   <div className={styles.breakdownList}>
                     {engineResult.assumptions.map((assumption) => (
                       <div className={styles.row} key={assumption.key}>
