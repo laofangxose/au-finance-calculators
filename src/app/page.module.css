@@ -14,13 +14,6 @@
   box-shadow: 0 14px 40px rgba(24, 32, 39, 0.07);
 }
 
-.eyebrow {
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .title {
   margin-top: 0.4rem;
   font-size: clamp(1.6rem, 3vw, 2rem);

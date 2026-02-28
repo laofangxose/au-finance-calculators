@@ -5,15 +5,18 @@ export default function HomePage() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <p className={styles.eyebrow}>M1 Demo</p>
-        <h1 className={styles.title}>AU Finance Calculators</h1>
+        <h1 className={styles.title}>Novated Lease Calculator</h1>
         <p className={styles.copy}>
-          Calculator framework prototype with query-param state sync and a
-          simple-interest demo calculator.
+          Estimate your potential novated lease impact with shareable inputs and
+          transparent assumptions.
+        </p>
+        <p className={styles.copy}>
+          Estimates only. This tool is general information and not financial,
+          tax, or legal advice.
         </p>
         <div className={styles.actions}>
-          <Link className={styles.primary} href="/calculators/simple-interest">
-            Open Demo Calculator
+          <Link className={styles.primary} href="/calculators/novated-lease">
+            Start Calculator
           </Link>
           <Link className={styles.secondary} href="/calculators">
             View Calculators

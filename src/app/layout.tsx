@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AU Finance Calculators",
-  description: "Australia-focused financial calculator prototypes",
+  description: "Australia-focused financial calculators with transparent assumptions.",
 };
 
 export default function RootLayout({
