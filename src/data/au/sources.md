@@ -36,3 +36,7 @@ Values must remain data-driven and versioned by financial year where applicable.
 - `fbt/config.json`
   - FBT statutory formula configuration defaults
   - Source: https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/cars-and-fbt/taxable-value-of-a-car-fringe-benefit
+
+- `lct/thresholds.json`
+  - Luxury Car Tax (LCT) rate and threshold assumptions by FY
+  - Source: https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds

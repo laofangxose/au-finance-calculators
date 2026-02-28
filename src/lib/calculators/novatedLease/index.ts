@@ -10,6 +10,8 @@ export {
 } from "./formState";
 export {
   getNovatedLeaseHeadlineMetrics,
+  getBuyOutrightComparison,
+  type BuyOutrightComparison,
   type NovatedLeaseHeadlineMetrics,
 } from "./presentation";
 export type {

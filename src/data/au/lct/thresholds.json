@@ -1,0 +1,19 @@
+{
+  "rate": 0.33,
+  "thresholdsByFinancialYear": {
+    "FY2024-25": {
+      "fuelEfficient": 91387,
+      "other": 80567
+    },
+    "FY2025-26": {
+      "fuelEfficient": 91387,
+      "other": 80567
+    },
+    "FY2026-27": {
+      "fuelEfficient": 91387,
+      "other": 80567
+    }
+  },
+  "source": "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+  "notes": "FY2026-27 thresholds are held at FY2025-26 values until updated ATO publication is released."
+}

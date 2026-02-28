@@ -62,15 +62,39 @@ describe("calculateNovatedLease", () => {
     expect(result.fbt?.employeeContributionAppliedForEcm).toBeGreaterThan(0);
   });
 
-  it("applies EV exemption for eligible BEV when toggle is on", () => {
+  it("applies EV exemption for BEV under LCT threshold", () => {
     const input = buildBaseInput();
     input.vehicle.vehicleType = "bev";
-    input.vehicle.eligibleForEvFbtExemption = true;
-    input.packaging.evFbtExemptionToggle = true;
+    input.vehicle.purchasePriceInclGst = 70000;
     const result = calculateNovatedLease(input);
     expect(result.fbt?.evExemptionApplied).toBe(true);
     expect(result.fbt?.taxableValueAfterEvExemption).toBe(0);
     expect(result.fbt?.employeeContributionAppliedForEcm).toBe(0);
+  });
+
+  it("auto-applies EV exemption for BEV regardless of user toggle fields", () => {
+    const input = buildBaseInput();
+    input.vehicle.vehicleType = "bev";
+    input.vehicle.eligibleForEvFbtExemption = false;
+    input.packaging.evFbtExemptionToggle = false;
+
+    const result = calculateNovatedLease(input);
+    expect(result.ok).toBe(true);
+    expect(result.fbt?.evExemptionApplied).toBe(true);
+    expect(result.fbt?.taxableValueAfterEvExemption).toBe(0);
+  });
+
+  it("does not apply EV exemption when BEV is above LCT threshold", () => {
+    const input = buildBaseInput();
+    input.vehicle.vehicleType = "bev";
+    input.vehicle.purchasePriceInclGst = 120000;
+    input.vehicle.eligibleForEvFbtExemption = true;
+    input.packaging.evFbtExemptionToggle = true;
+
+    const result = calculateNovatedLease(input);
+    expect(result.ok).toBe(true);
+    expect(result.fbt?.evExemptionApplied).toBe(false);
+    expect(result.fbt?.taxableValueAfterEvExemption).toBeGreaterThan(0);
   });
 
   it("produces larger tax-and-levy savings at high income than low income", () => {

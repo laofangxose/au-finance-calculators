@@ -35,19 +35,20 @@ Out of scope for this domain model version:
 - detailed GST BAS treatment for employers
 - operating cost method/logbook modeling
 
-## 1.1 Quote-First Modeling Requirement
+## 1.1 Input Modes Requirement
 
-The model must support two modes:
+The model must support exactly two user input modes:
 
-1. **Direct-input mode**: user provides key finance parameters directly.
-2. **Quote-first mode**: user provides partial quote fields (e.g. per-pay deduction, term, balloon, running cost bundle), and model infers missing parameters using documented defaults.
+1. **Detailed Mode**: user provides full lease parameters (term, rate, fees, running costs).
+2. **Quote Mode**: user provides dealer monthly lease payment from quote and required contextual fields.
 
-Quote-first mode must:
+Both modes must produce the same output contract.
 
-- never silently invent values; all inferred values must be recorded in output assumptions
-- expose assumption confidence (high/medium/low) for each inferred parameter
-- allow user overrides to replace inferred values
-- provide a range/sensitivity view for unknown interest rate and opaque fees
+Mode behavior principles:
+
+- no silent assumptions: inferred/defaulted values must be listed in output assumptions
+- quote-mode inferred values must carry confidence labels (high/medium/low)
+- users can override inferred values where field exists in chosen mode
 
 ## 2. Input Parameters (Types + Descriptions)
 
@@ -55,6 +56,7 @@ Implementation target: pure-function input object.
 
 ```ts
 export type PayFrequency = "weekly" | "fortnightly" | "monthly";
+export type InputMode = "detailed" | "quote";
 
 export type FilingProfile = {
   residentForTaxPurposes: true; // MVP assumes Australian resident only
@@ -80,6 +82,12 @@ export type NovatedLeaseFinanceInput = {
   establishmentFee: number; // financed unless explicitly excluded by future option
   monthlyAccountKeepingFee: number;
   residualValueOverride?: number; // absolute amount; if absent, use residual table
+};
+
+export type NovatedLeaseQuoteInput = {
+  quotedMonthlyLeasePayment: number; // monthly quote lease amount used as finance repayment source
+  quotedMonthlyAdminFee?: number;
+  quotedUpfrontFeesTotal?: number;
 };
 
 export type NovatedLeaseRunningCostsInput = {
@@ -112,8 +120,10 @@ export type NovatedLeasePackagingInput = {
 };
 
 export type NovatedLeaseCalculatorInput = {
+  inputMode: InputMode;
   vehicle: NovatedLeaseVehicleInput;
-  finance: NovatedLeaseFinanceInput;
+  finance?: NovatedLeaseFinanceInput; // required in detailed mode
+  quote?: NovatedLeaseQuoteInput; // required in quote mode
   runningCosts: NovatedLeaseRunningCostsInput;
   salary: NovatedLeaseSalaryInput;
   filingProfile: FilingProfile;
@@ -144,6 +154,9 @@ export type NovatedLeaseQuoteContextInput = {
 - `baseValueForFbt` is optional to support future quote-level accuracy; default derivation is defined in assumptions.
 - `quoteContext` is optional but recommended when user is comparing against an external quote.
 - If quote data is partial, calculation proceeds with assumption fallbacks and warning-level validation issues.
+- `inputMode = "detailed"` requires `finance` object and ignores `quote.quotedMonthlyLeasePayment`.
+- `inputMode = "quote"` requires `quote.quotedMonthlyLeasePayment` and may omit `finance.annualInterestRatePct`.
+- In quote mode, `finance.termMonths` is still required either from `finance.termMonths` or mapped quote metadata.
 
 ## 3. Output Structure (Strict Interface Definition)
 
@@ -241,6 +254,10 @@ export type NovatedLeaseCalculatorOutput = {
   cashflow: CashflowSummary | null;
   assumptions: AppliedAssumption[];
   inferredParameters: InferredParameter[];
+  modeContext?: {
+    inputMode: "detailed" | "quote";
+    leaseRepaymentSource: "amortized_finance" | "quoted_monthly_payment";
+  };
 };
 ```
 
@@ -250,6 +267,7 @@ export type NovatedLeaseCalculatorOutput = {
 - `warning` issues do not block calculation.
 - Output must include the exact assumptions used (e.g., tax year, Medicare levy rate, statutory rate, residual source).
 - Output must include all inferred quote parameters and confidence levels.
+- Output shape remains the same across modes; only `modeContext` metadata differs.
 
 ## 4. Financial Calculation Breakdown
 
@@ -292,6 +310,21 @@ Total finance repayments excluding residual:
 Simplified total interest estimate:
 
 - `totalInterestEstimate = totalFinanceRepaymentsExcludingResidual + residualValue - financedAmount`
+
+### 4.1.4 Quote Mode Lease Payment Handling
+
+When `inputMode = "quote"`:
+
+- lease amortization step is skipped for periodic repayment derivation
+- `periodicFinanceRepayment` and `annualFinanceRepayment` are sourced from quote payment:
+  - `periodicFinanceRepayment = quotedMonthlyLeasePayment`
+  - `annualFinanceRepayment = quotedMonthlyLeasePayment * 12`
+- if quote monthly payment is missing/invalid, return validation error and no numeric output
+
+In quote mode:
+
+- amortization-derived fields can still be estimated if enough extra inputs exist, but must be marked inferred
+- if not estimable, set relevant derived fields to `0` or inferred approximation and emit warning
 
 ### 4.1.3 Quote-Inferred Interest Rate (When Missing)
 
@@ -435,6 +468,30 @@ Comparison output behavior:
   - `moderate_gap` (> 2% and <= 8%)
   - `high_gap` (> 8%)
 
+### 4.7 Mode-Specific Flow Summary
+
+Detailed Mode flow:
+
+1. validate detailed-required fields
+2. run lease amortization (annuity + residual)
+3. run FBT, EV exemption, ECM
+4. run tax comparison and cashflow summary
+
+Quote Mode flow:
+
+1. validate quote-required fields (including monthly payment)
+2. skip amortization for primary lease payment and use quoted payment as lease payment source
+3. run FBT, EV exemption, ECM with same formulas as Detailed Mode
+4. run tax comparison and cashflow summary using quote-sourced lease payment
+
+Identical logic across both modes:
+
+- FBT statutory formula
+- EV exemption eligibility logic
+- ECM logic
+- income tax + Medicare levy calculations
+- packaging split and cashflow composition structure
+
 ## 5. Required Data Tables
 
 All values must be stored in `src/data/**` (not hardcoded in calculation logic).
@@ -568,12 +625,24 @@ Validation should return structured issues (`error`/`warning`), not throw for no
 
 Errors if missing/blank:
 
+- `inputMode`
 - `vehicle.purchasePriceInclGst`
-- `finance.termMonths`
-- `finance.annualInterestRatePct`
 - `salary.grossAnnualSalary`
 - `salary.payFrequency`
 - `taxOptions.incomeTaxYear`
+
+Detailed Mode required:
+
+- `finance.termMonths`
+- `finance.annualInterestRatePct`
+- `finance.establishmentFee`
+- `finance.monthlyAccountKeepingFee`
+
+Quote Mode required:
+
+- `quote.quotedMonthlyLeasePayment`
+- term source (`finance.termMonths` or equivalent quote metadata mapped into `termMonths`)
+- quote payment must be strictly greater than 0
 
 ### 8.2 Numeric Constraints
 
@@ -581,11 +650,12 @@ Errors:
 
 - all currency fields must be finite numbers `>= 0`
 - `grossAnnualSalary > 0`
-- `annualInterestRatePct >= 0`
+- `annualInterestRatePct >= 0` (Detailed Mode)
 - `termMonths` must be one of `12|24|36|48|60`
 - `paymentsPerYear` must be one of `12|26|52`
 - `daysAvailableForPrivateUseInFbtYear` must be between `0` and `fbtYearDays`
 - `fbtYearDays` must be `365` or `366`
+- `quotedMonthlyLeasePayment > 0` (Quote Mode)
 
 ### 8.3 Residual Validation
 
@@ -613,6 +683,19 @@ Warnings:
 - quote present but missing critical decomposition fields (`QUOTE_PARTIAL_DATA`)
 - implied interest rate outside plausible bounds (`QUOTE_IMPLIED_RATE_OUTLIER`)
 - quote/model variance above tolerance (`QUOTE_MODEL_VARIANCE_HIGH`)
+
+### 8.5 Mode-Consistency Rules
+
+Errors:
+
+- `inputMode = "detailed"` and `finance` missing
+- `inputMode = "quote"` and `quote.quotedMonthlyLeasePayment` missing
+- unsupported mixed source where neither amortized repayment nor quote payment can be established
+
+Warnings:
+
+- both detailed repayment inputs and quote monthly payment provided; mode-selected source is used and alternate source ignored
+- quote mode with insufficient decomposition fields (e.g., fees unknown) leading to inferred assumptions
 
 ## 9. Risk Areas
 

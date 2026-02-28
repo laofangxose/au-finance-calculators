@@ -27,23 +27,27 @@ export function useQueryState<T extends QueryStateRecord>(defaults: T) {
     setState(stateFromUrl);
   }, [stateFromUrl]);
 
+  useEffect(() => {
+    const currentQuery = searchParams.toString();
+    const nextQuery = toQueryString(state, defaults);
+
+    if (currentQuery === nextQuery) {
+      return;
+    }
+
+    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [defaults, pathname, router, searchParams, state]);
+
   const setQueryState = useCallback(
     (updater: StateUpdater<T>) => {
-      setState((prev) => {
-        const next =
-          typeof updater === "function"
-            ? (updater as (current: T) => T)(prev)
-            : updater;
-
-        const nextQuery = toQueryString(next, defaults);
-        const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-
-        router.replace(nextUrl, { scroll: false });
-
-        return next;
-      });
+      setState((prev) =>
+        typeof updater === "function"
+          ? (updater as (current: T) => T)(prev)
+          : updater,
+      );
     },
-    [defaults, pathname, router],
+    [],
   );
 
   return [state, setQueryState] as const;

@@ -101,7 +101,7 @@ export const DEFAULT_NOVATED_LEASE_FORM_STATE: NovatedLeaseFormState = {
   fyd: "365",
   dav: "365",
   fsr: "",
-  vt: "ice",
+  vt: "bev",
   pp: "50000",
   bv: "",
   eve: "0",

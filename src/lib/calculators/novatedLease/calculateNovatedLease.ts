@@ -7,6 +7,7 @@ import residualConfig from "../../../data/au/residuals/ato-car-lease-residuals.j
 import taxFy202425 from "../../../data/au/tax/brackets/FY2024-25.json";
 import taxFy202526 from "../../../data/au/tax/brackets/FY2025-26.json";
 import taxFy202627 from "../../../data/au/tax/brackets/FY2026-27.json";
+import lctThresholds from "../../../data/au/lct/thresholds.json";
 import type {
   AppliedAssumption,
   FbtBreakdown,
@@ -133,19 +134,35 @@ function isEvFbtExempt(input: NovatedLeaseCalculatorInput): {
   applied: boolean;
   reason?: string;
 } {
-  const { vehicle, packaging } = input;
-  if (!packaging.evFbtExemptionToggle) {
-    return { applied: false };
-  }
-  if (!vehicle.eligibleForEvFbtExemption) {
-    return { applied: false, reason: "User marked vehicle as ineligible." };
-  }
+  const { vehicle } = input;
+  const lctFuelEfficientThreshold =
+    lctThresholds.thresholdsByFinancialYear[input.taxOptions.incomeTaxYear]
+      .fuelEfficient;
+  const isBelowFuelEfficientLctThreshold =
+    vehicle.purchasePriceInclGst <= lctFuelEfficientThreshold;
 
   if (vehicle.vehicleType === "bev" || vehicle.vehicleType === "fcev") {
-    return { applied: true, reason: "Eligible EV type with exemption toggled." };
+    if (!isBelowFuelEfficientLctThreshold) {
+      return {
+        applied: false,
+        reason:
+          "EV purchase price is above the fuel-efficient LCT threshold, so exemption does not apply.",
+      };
+    }
+    return {
+      applied: true,
+      reason: "Auto-applied for eligible BEV/FCEV under LCT threshold.",
+    };
   }
 
   if (vehicle.vehicleType === "phev") {
+    if (!isBelowFuelEfficientLctThreshold) {
+      return {
+        applied: false,
+        reason:
+          "PHEV purchase price is above the fuel-efficient LCT threshold, so exemption does not apply.",
+      };
+    }
     if (
       vehicle.wasPhevExemptBefore2025_04_01 &&
       vehicle.hasBindingCommitmentPre2025_04_01
@@ -463,18 +480,6 @@ export function calculateNovatedLease(
       field: "taxOptions.fbtStatutoryRateOverride",
       message: "FBT statutory rate must be between 0 and 1.",
       severity: "error",
-    });
-  }
-
-  if (
-    input.packaging.evFbtExemptionToggle &&
-    !input.vehicle.eligibleForEvFbtExemption
-  ) {
-    issues.push({
-      code: "EV_TOGGLE_INELIGIBLE",
-      field: "vehicle.eligibleForEvFbtExemption",
-      message: "EV exemption toggle enabled while vehicle marked ineligible.",
-      severity: "warning",
     });
   }
 
