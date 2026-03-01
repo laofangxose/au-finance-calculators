@@ -186,6 +186,39 @@ function errorIssues(issues: ValidationIssue[]): ValidationIssue[] {
   return issues.filter((issue) => issue.severity === "error");
 }
 
+function computeCompoundedOpportunityBenefit(params: {
+  principal: number;
+  annualRatePct: number;
+  paymentsPerYear: number;
+  periods: number;
+  periodicRepayment: number;
+}): number {
+  if (
+    params.principal <= 0 ||
+    params.annualRatePct <= 0 ||
+    params.paymentsPerYear <= 0 ||
+    params.periods <= 0
+  ) {
+    return 0;
+  }
+
+  const periodicRate = params.annualRatePct / 100 / params.paymentsPerYear;
+  let balance = params.principal;
+  let accruedInterest = 0;
+
+  for (let i = 0; i < params.periods; i += 1) {
+    const interest = balance * periodicRate;
+    balance += interest;
+    accruedInterest += interest;
+    balance -= params.periodicRepayment;
+    if (balance <= 0) {
+      break;
+    }
+  }
+
+  return Math.max(0, accruedInterest);
+}
+
 function computeBuyOutrightComparison(params: {
   input: NovatedLeaseCalculatorInput;
   lease: LeaseRepaymentBreakdown;
@@ -214,14 +247,33 @@ function computeBuyOutrightComparison(params: {
     opportunityCostRateRaw >= 0
       ? opportunityCostRateRaw
       : 0;
-  const estimatedForgoneEarningsOverTerm =
-    input.vehicle.purchasePriceInclGst *
-    (opportunityCostRateAssumed / 100) *
-    termYears;
+  const paymentsPerYear =
+    input.finance.paymentsPerYear ?? assumptionsConfig.defaultFinancePaymentsPerYear;
+  const periods = Math.max(1, Math.round(termYears * paymentsPerYear));
+  const periodicRepayment =
+    lease.totalFinanceRepaymentsExcludingResidual / periods;
+  // Opportunity-cost model: invest car price and draw down by lease repayments each period.
+  // Running costs are intentionally excluded from this opportunity-cost benefit.
+  const estimatedForgoneEarningsOverTerm = computeCompoundedOpportunityBenefit({
+    principal: input.vehicle.purchasePriceInclGst,
+    annualRatePct: opportunityCostRateAssumed,
+    paymentsPerYear,
+    periods,
+    periodicRepayment,
+  });
+  const annualRunningCosts =
+    input.runningCosts.annualRegistration +
+    input.runningCosts.annualInsurance +
+    input.runningCosts.annualMaintenance +
+    input.runningCosts.annualTyres +
+    input.runningCosts.annualFuelOrElectricity +
+    input.runningCosts.annualOtherEligibleCarExpenses;
+  const outrightRunningCostsOverTerm = annualRunningCosts * termYears;
 
   // Requested decision model:
-  // outright total = car price only
-  const totalCashOutlayOverTerm = input.vehicle.purchasePriceInclGst;
+  // outright total = car price + running costs over term
+  const totalCashOutlayOverTerm =
+    input.vehicle.purchasePriceInclGst + outrightRunningCostsOverTerm;
   const monthlyEquivalentCost = totalCashOutlayOverTerm / termMonths;
 
   // novated total = repayments - tax savings + residual - opportunity cost
@@ -235,6 +287,7 @@ function computeBuyOutrightComparison(params: {
   return {
     monthlyEquivalentCost: roundCurrency(monthlyEquivalentCost),
     totalCashOutlayOverTerm: roundCurrency(totalCashOutlayOverTerm),
+    outrightRunningCostsOverTerm: roundCurrency(outrightRunningCostsOverTerm),
     novatedMonthlyOutOfPocket: roundCurrency(novatedMonthlyOutOfPocket),
     novatedTotalCostOverTerm: roundCurrency(novatedTotalCostOverTerm),
     monthlyDifference: roundCurrency(

@@ -45,6 +45,39 @@ function buildBaseInput(): NovatedLeaseCalculatorInput {
   };
 }
 
+function computeCompoundedOpportunityBenefitForTest(params: {
+  principal: number;
+  annualRatePct: number;
+  paymentsPerYear: number;
+  periods: number;
+  periodicRepayment: number;
+}): number {
+  if (
+    params.principal <= 0 ||
+    params.annualRatePct <= 0 ||
+    params.paymentsPerYear <= 0 ||
+    params.periods <= 0
+  ) {
+    return 0;
+  }
+
+  const periodicRate = params.annualRatePct / 100 / params.paymentsPerYear;
+  let balance = params.principal;
+  let accruedInterest = 0;
+
+  for (let i = 0; i < params.periods; i += 1) {
+    const interest = balance * periodicRate;
+    balance += interest;
+    accruedInterest += interest;
+    balance -= params.periodicRepayment;
+    if (balance <= 0) {
+      break;
+    }
+  }
+
+  return Math.max(0, accruedInterest);
+}
+
 describe("getBuyOutrightComparison", () => {
   it("defaults opportunity-cost rate to 0%", () => {
     const input = buildBaseInput();
@@ -65,10 +98,28 @@ describe("getBuyOutrightComparison", () => {
     withOpportunity.comparison = { opportunityCostRatePct: 5 };
     const withOpportunityResult = calculateNovatedLease(withOpportunity);
     const withOpportunityComparison = getBuyOutrightComparison(withOpportunityResult);
+    const paymentsPerYear = withOpportunity.finance.paymentsPerYear ?? 12;
+    const periods = Math.max(
+      1,
+      Math.round((withOpportunity.finance.termMonths / 12) * paymentsPerYear),
+    );
+    const periodicRepayment =
+      (withOpportunityResult.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) /
+      periods;
+    const expectedCompoundedBenefit = computeCompoundedOpportunityBenefitForTest({
+      principal: withOpportunity.vehicle.purchasePriceInclGst,
+      annualRatePct: withOpportunity.comparison?.opportunityCostRatePct ?? 0,
+      paymentsPerYear,
+      periods,
+      periodicRepayment,
+    });
 
     expect(withOpportunityComparison).not.toBeNull();
     expect(withOpportunityComparison?.opportunityCostRateAssumed).toBe(5);
-    expect(withOpportunityComparison?.estimatedForgoneEarningsOverTerm).toBe(7500);
+    expect(withOpportunityComparison?.estimatedForgoneEarningsOverTerm).toBeCloseTo(
+      expectedCompoundedBenefit,
+      2,
+    );
     expect(withOpportunityComparison?.novatedTotalCostOverTerm ?? 0).toBeLessThan(
       baseComparison?.novatedTotalCostOverTerm ?? 0,
     );
@@ -80,11 +131,20 @@ describe("getBuyOutrightComparison", () => {
     const result = calculateNovatedLease(input);
     const comparison = getBuyOutrightComparison(result);
 
-    const termYears = input.finance.termMonths / 12;
-    const opportunityCost =
-      input.vehicle.purchasePriceInclGst *
-      ((input.comparison?.opportunityCostRatePct ?? 0) / 100) *
-      termYears;
+    const paymentsPerYear = input.finance.paymentsPerYear ?? 12;
+    const periods = Math.max(
+      1,
+      Math.round((input.finance.termMonths / 12) * paymentsPerYear),
+    );
+    const periodicRepayment =
+      (result.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) / periods;
+    const opportunityCost = computeCompoundedOpportunityBenefitForTest({
+      principal: input.vehicle.purchasePriceInclGst,
+      annualRatePct: input.comparison?.opportunityCostRatePct ?? 0,
+      paymentsPerYear,
+      periods,
+      periodicRepayment,
+    });
     const expectedTotal =
       (result.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) -
       (result.taxComparison?.taxAndLevySavings ?? 0) +
@@ -109,18 +169,25 @@ describe("getBuyOutrightComparison", () => {
     expect(comparison?.novatedTotalCostOverTerm).toBeCloseTo(expectedTotal, 2);
   });
 
-  it("uses car price only for buy-outright total", () => {
+  it("includes running costs in buy-outright total", () => {
     const input = buildBaseInput();
     input.finance.establishmentFee = 12345;
     input.runningCosts.annualFuelOrElectricity = 99999;
 
     const result = calculateNovatedLease(input);
     const comparison = getBuyOutrightComparison(result);
+    const annualRunningCosts =
+      input.runningCosts.annualRegistration +
+      input.runningCosts.annualInsurance +
+      input.runningCosts.annualMaintenance +
+      input.runningCosts.annualTyres +
+      input.runningCosts.annualFuelOrElectricity +
+      input.runningCosts.annualOtherEligibleCarExpenses;
+    const expectedOutrightTotal =
+      input.vehicle.purchasePriceInclGst +
+      annualRunningCosts * (input.finance.termMonths / 12);
 
     expect(comparison).not.toBeNull();
-    expect(comparison?.totalCashOutlayOverTerm).toBeCloseTo(
-      input.vehicle.purchasePriceInclGst,
-      2,
-    );
+    expect(comparison?.totalCashOutlayOverTerm).toBeCloseTo(expectedOutrightTotal, 2);
   });
 });

@@ -44,6 +44,39 @@ function buildBaseInput(): NovatedLeaseCalculatorInput {
   };
 }
 
+function computeCompoundedOpportunityBenefitForTest(params: {
+  principal: number;
+  annualRatePct: number;
+  paymentsPerYear: number;
+  periods: number;
+  periodicRepayment: number;
+}): number {
+  if (
+    params.principal <= 0 ||
+    params.annualRatePct <= 0 ||
+    params.paymentsPerYear <= 0 ||
+    params.periods <= 0
+  ) {
+    return 0;
+  }
+
+  const periodicRate = params.annualRatePct / 100 / params.paymentsPerYear;
+  let balance = params.principal;
+  let accruedInterest = 0;
+
+  for (let i = 0; i < params.periods; i += 1) {
+    const interest = balance * periodicRate;
+    balance += interest;
+    accruedInterest += interest;
+    balance -= params.periodicRepayment;
+    if (balance <= 0) {
+      break;
+    }
+  }
+
+  return Math.max(0, accruedInterest);
+}
+
 describe("calculateNovatedLease comparison contract", () => {
   it("returns buyOutrightComparison for valid inputs", () => {
     const result = calculateNovatedLease(buildBaseInput());
@@ -59,14 +92,27 @@ describe("calculateNovatedLease comparison contract", () => {
     expect(result.buyOutrightComparison).toBeNull();
   });
 
-  it("uses car price only for buy-outright total", () => {
+  it("includes running costs in buy-outright total", () => {
     const input = buildBaseInput();
     input.finance.establishmentFee = 7500;
 
     const result = calculateNovatedLease(input);
     expect(result.ok).toBe(true);
+    const annualRunningCosts =
+      input.runningCosts.annualRegistration +
+      input.runningCosts.annualInsurance +
+      input.runningCosts.annualMaintenance +
+      input.runningCosts.annualTyres +
+      input.runningCosts.annualFuelOrElectricity +
+      input.runningCosts.annualOtherEligibleCarExpenses;
+    const expectedRunningCostsOverTerm =
+      annualRunningCosts * (input.finance.termMonths / 12);
+
+    expect(result.buyOutrightComparison?.outrightRunningCostsOverTerm).toBe(
+      expectedRunningCostsOverTerm,
+    );
     expect(result.buyOutrightComparison?.totalCashOutlayOverTerm).toBe(
-      input.vehicle.purchasePriceInclGst,
+      input.vehicle.purchasePriceInclGst + expectedRunningCostsOverTerm,
     );
   });
 
@@ -76,11 +122,20 @@ describe("calculateNovatedLease comparison contract", () => {
     const result = calculateNovatedLease(input);
     const c = result.buyOutrightComparison;
     expect(c).not.toBeNull();
-    const termYears = input.finance.termMonths / 12;
-    const opportunityCost =
-      input.vehicle.purchasePriceInclGst *
-      ((input.comparison?.opportunityCostRatePct ?? 0) / 100) *
-      termYears;
+    const paymentsPerYear = input.finance.paymentsPerYear ?? 12;
+    const periods = Math.max(
+      1,
+      Math.round((input.finance.termMonths / 12) * paymentsPerYear),
+    );
+    const periodicRepayment =
+      (result.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) / periods;
+    const opportunityCost = computeCompoundedOpportunityBenefitForTest({
+      principal: input.vehicle.purchasePriceInclGst,
+      annualRatePct: input.comparison?.opportunityCostRatePct ?? 0,
+      paymentsPerYear,
+      periods,
+      periodicRepayment,
+    });
     const expectedTotal =
       (result.lease?.totalFinanceRepaymentsExcludingResidual ?? 0) -
       (result.taxComparison?.taxAndLevySavings ?? 0) +
@@ -117,5 +172,22 @@ describe("calculateNovatedLease comparison contract", () => {
       (c?.novatedTotalCostOverTerm ?? 0) - (c?.totalCashOutlayOverTerm ?? 0),
       2,
     );
+  });
+
+  it("ignores running costs in opportunity-cost benefit calculation", () => {
+    const lowRunning = buildBaseInput();
+    lowRunning.comparison = { opportunityCostRatePct: 5 };
+
+    const highRunning = buildBaseInput();
+    highRunning.comparison = { opportunityCostRatePct: 5 };
+    highRunning.runningCosts.annualFuelOrElectricity = 25000;
+    highRunning.runningCosts.annualMaintenance = 10000;
+
+    const lowResult = calculateNovatedLease(lowRunning);
+    const highResult = calculateNovatedLease(highRunning);
+
+    expect(
+      highResult.buyOutrightComparison?.estimatedForgoneEarningsOverTerm,
+    ).toBe(lowResult.buyOutrightComparison?.estimatedForgoneEarningsOverTerm);
   });
 });

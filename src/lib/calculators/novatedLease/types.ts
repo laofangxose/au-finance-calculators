@@ -150,6 +150,7 @@ export type CashflowSummary = {
 export type BuyOutrightComparisonBreakdown = {
   monthlyEquivalentCost: number;
   totalCashOutlayOverTerm: number;
+  outrightRunningCostsOverTerm: number;
   novatedMonthlyOutOfPocket: number;
   novatedTotalCostOverTerm: number;
   monthlyDifference: number;

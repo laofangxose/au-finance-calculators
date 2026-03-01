@@ -32,6 +32,37 @@ const numberFormatter = new Intl.NumberFormat("en-AU", {
   maximumFractionDigits: 2,
 });
 
+const DATA_SOURCE_LINKS = [
+  {
+    label: "ATO individual income tax rates",
+    href: "https://www.ato.gov.au/rates/individual-income-tax-rates/",
+  },
+  {
+    label: "ATO Medicare levy",
+    href:
+      "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/what-is-the-medicare-levy",
+  },
+  {
+    label: "ATO car fringe benefit taxable value (statutory formula)",
+    href:
+      "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/cars-and-fbt/taxable-value-of-a-car-fringe-benefit",
+  },
+  {
+    label: "ATO electric cars exemption",
+    href:
+      "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+  },
+  {
+    label: "ATO plug-in hybrid electric vehicle FBT transition",
+    href:
+      "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/fbt-on-plug-in-hybrid-electric-vehicles",
+  },
+  {
+    label: "ATO luxury car tax rates and thresholds",
+    href: "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/rates-and-thresholds",
+  },
+];
+
 type FieldErrors = Partial<Record<keyof NovatedLeaseFormState, string>>;
 
 function glossary(term: string) {
@@ -548,7 +579,7 @@ export function NovatedLeaseCalculator() {
                     cost over the full lease term.
                   </li>
                   <li>
-                    Tax effect this year:{" "}
+                    Estimated tax and Medicare savings over the lease term:{" "}
                     {currencyFormatter.format(engineResult.taxComparison?.taxAndLevySavings ?? 0)}.
                   </li>
                   <li>
@@ -619,6 +650,12 @@ export function NovatedLeaseCalculator() {
                         <span>Total cash outlay (term)</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(comparison.totalCashOutlayOverTerm)}
+                        </span>
+                      </div>
+                      <div className={styles.row}>
+                        <span>Running costs over term</span>
+                        <span className={styles.value}>
+                          {currencyFormatter.format(comparison.outrightRunningCostsOverTerm)}
                         </span>
                       </div>
                       <div className={styles.row}>
@@ -696,10 +733,13 @@ export function NovatedLeaseCalculator() {
                 <summary className={styles.detailsTitle}>Data sources</summary>
                 <div className={styles.detailsContent}>
                   <ul className={styles.sourceList}>
-                    <li>ATO individual income tax rates</li>
-                    <li>ATO Medicare levy</li>
-                    <li>ATO FBT car taxable value guidance</li>
-                    <li>ATO LCT thresholds</li>
+                    {DATA_SOURCE_LINKS.map((source) => (
+                      <li key={source.href}>
+                        <a href={source.href} target="_blank" rel="noreferrer noopener">
+                          {source.label}
+                        </a>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </details>

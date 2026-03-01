@@ -133,6 +133,19 @@
   font-size: 1rem;
 }
 
+.explainList {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style-position: inside;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.explainList li {
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .badgeRow {
   display: flex;
   flex-wrap: wrap;
