@@ -712,7 +712,7 @@ export function NovatedLeaseCalculator() {
                 </div>
               </section>
 
-              <details className={styles.detailsBlock} open>
+              <details className={styles.detailsBlock}>
                 <summary className={styles.detailsTitle}>{t("novated.breakdownTitle")}</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.breakdownList}>

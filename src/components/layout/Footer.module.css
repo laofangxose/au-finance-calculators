@@ -12,7 +12,7 @@
 .inner {
   width: min(1200px, 100%);
   margin: 0 auto;
-  padding: 0.8rem 1.25rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -32,6 +32,9 @@
 }
 
 .link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-size: 0.86rem;
   color: var(--muted);
   text-decoration: underline;
@@ -45,5 +48,16 @@
 @media (max-width: 740px) {
   .inner {
     flex-wrap: wrap;
+    gap: 0.35rem 0.8rem;
+  }
+
+  .nav {
+    gap: 0.4rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .inner {
+    padding: 0.8rem 1.5rem;
   }
 }

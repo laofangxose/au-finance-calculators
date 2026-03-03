@@ -32,6 +32,7 @@
 .label {
   font-size: 0.86rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .hint,
@@ -42,6 +43,7 @@
 
 .hint {
   font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 
 .metaRule {
@@ -51,6 +53,7 @@
 .input,
 .select {
   width: 100%;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.58rem 0.65rem;
@@ -213,6 +216,7 @@
   margin-top: 0.28rem;
   font-size: 1.04rem;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .compareGrid {
@@ -246,6 +250,11 @@
   border-bottom: 1px dashed var(--border);
 }
 
+.row > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .row:last-child {
   border-bottom: 0;
   padding-bottom: 0;
@@ -253,6 +262,8 @@
 
 .value {
   font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .detailsBlock {
@@ -364,4 +375,42 @@
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .section,
+  .executiveSection,
+  .compareSection,
+  .detailsBlock {
+    padding: 0.75rem;
+  }
+
+  .headlineGrid,
+  .compareGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headlineValue {
+    font-size: 0.98rem;
+  }
+
+  .calculateBtnLarge {
+    width: 100%;
+  }
+
+  .row {
+    gap: 0.55rem;
+  }
+
+  .value {
+    font-size: 0.9rem;
+  }
+
+  .glossaryTooltip {
+    width: min(300px, 86vw);
+  }
 }

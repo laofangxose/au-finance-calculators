@@ -16,6 +16,12 @@
   --error-fg: #942a2a;
 }
 
+@media (max-width: 740px) {
+  :root {
+    --footer-height: 112px;
+  }
+}
+
 [data-theme="dark"] {
   --background: #0f1418;
   --foreground: #e8edf2;
@@ -36,7 +42,7 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -46,6 +52,13 @@ body {
   padding-bottom: var(--footer-height);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+main,
+section,
+article,
+div {
+  min-width: 0;
 }
 
 * {

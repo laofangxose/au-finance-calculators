@@ -1,6 +1,6 @@
 .page {
   min-height: calc(100vh - 70px);
-  padding: 1.5rem 1.25rem 2rem;
+  padding: 1rem 1rem 2rem;
 }
 
 .frame {
@@ -11,7 +11,7 @@
 }
 
 .title {
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  font-size: clamp(1.35rem, 5vw, 2.1rem);
 }
 
 .copy {
@@ -43,6 +43,7 @@
 
 .badgeRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
@@ -73,9 +74,12 @@
 .primary {
   background: var(--accent);
   color: #fff;
+  min-height: 44px;
   padding: 0.7rem 1rem;
   border-radius: 10px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
 }
 
 .primary:hover {
@@ -84,9 +88,26 @@
 
 .disabled {
   border: 1px solid var(--border);
+  min-height: 44px;
   padding: 0.7rem 1rem;
   border-radius: 10px;
   color: var(--muted);
   background: color-mix(in srgb, var(--panel) 86%, transparent);
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 0.85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 1.5rem 1.5rem 2rem;
+  }
 }
