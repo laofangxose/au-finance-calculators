@@ -6,6 +6,7 @@ type CalculatorPageProps = {
   description: string;
   inputPanelTitle?: string;
   resultsPanelTitle?: string;
+  gridVariant?: "default" | "resultsWide";
   headerAction?: ReactNode;
   resultsTop?: ReactNode;
   disclaimer?: ReactNode;
@@ -18,6 +19,7 @@ export function CalculatorPage({
   description,
   inputPanelTitle = "Inputs",
   resultsPanelTitle = "Results",
+  gridVariant = "default",
   headerAction,
   resultsTop,
   disclaimer,
@@ -37,7 +39,10 @@ export function CalculatorPage({
           <p className={styles.description}>{description}</p>
         </header>
 
-        <section className={styles.grid} aria-label="Calculator layout">
+        <section
+          className={`${styles.grid} ${gridVariant === "resultsWide" ? styles.gridResultsWide : ""}`}
+          aria-label="Calculator layout"
+        >
           <div className={styles.panel}>
             <h2 className={styles.panelTitle}>{inputPanelTitle}</h2>
             {form}

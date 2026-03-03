@@ -6,7 +6,8 @@
   "nav": {
     "home": "Home",
     "calculators": "Calculators",
-    "novatedLease": "Novated Lease"
+    "novatedLease": "Novated Lease",
+    "loanRepayment": "Loan Repayment"
   },
   "controls": {
     "language": "Language",
@@ -326,7 +327,11 @@
       "balance": "Remaining balance",
       "interest": "Interest",
       "principal": "Principal",
-      "totalPayment": "Total payment"
+      "totalPayment": "Total payment",
+      "axisXMonths": "Time (months)",
+      "axisXYears": "Time (years)",
+      "axisYBalance": "Balance (AUD)",
+      "axisYCashflow": "Per-period amount (AUD)"
     },
     "schedule": {
       "title": "Amortization schedule",

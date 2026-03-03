@@ -56,12 +56,13 @@ export function normalizeLoanRepaymentFormState(
   const repaymentType = VALID_REPAYMENT_TYPES.includes(state.rt as LoanRepaymentType)
     ? state.rt
     : DEFAULT_LOAN_REPAYMENT_FORM_STATE.rt;
+  const normalizedRepaymentType = mode === "reverse" ? "PI" : repaymentType;
   return {
     ...DEFAULT_LOAN_REPAYMENT_FORM_STATE,
     ...state,
     m: mode,
     f: frequency,
-    rt: repaymentType,
+    rt: normalizedRepaymentType,
   };
 }
 

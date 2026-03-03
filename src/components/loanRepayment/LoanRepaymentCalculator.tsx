@@ -41,6 +41,19 @@ function downsampleSchedule<T>(items: T[], maxPoints: number): T[] {
   return sampled;
 }
 
+function buildIntegerTicks(maxValue: number, targetTicks = 8): number[] {
+  const safeMax = Math.max(1, Math.ceil(maxValue));
+  const step = Math.max(1, Math.ceil(safeMax / Math.max(2, targetTicks - 1)));
+  const ticks: number[] = [];
+  for (let value = 0; value <= safeMax; value += step) {
+    ticks.push(value);
+  }
+  if (ticks[ticks.length - 1] !== safeMax) {
+    ticks.push(safeMax);
+  }
+  return ticks;
+}
+
 type FieldProps = {
   label: string;
   hint?: string;
@@ -92,7 +105,9 @@ export function LoanRepaymentCalculator() {
 
   const frequency = normalizedState.f as LoanRepaymentFrequency;
   const periodsPerYear = paymentsPerYear(frequency);
-  const useMonthAxis = frequency === "monthly";
+  const termYearsValue = Number(normalizedState.y);
+  const useMonthAxis =
+    frequency !== "yearly" && Number.isFinite(termYearsValue) && termYearsValue < 5;
   const chartData = downsampleSchedule(result?.amortizationSchedule ?? [], 240).map(
     (row) => {
       const elapsedYears = row.periodIndex / periodsPerYear;
@@ -119,6 +134,16 @@ export function LoanRepaymentCalculator() {
 
   const formatWhole = (value: unknown) =>
     Number.isFinite(Number(value)) ? String(Math.round(Number(value))) : "0";
+  const chartKey = `${normalizedState.m}-${normalizedState.rt}-${normalizedState.f}-${chartData.length}`;
+  const xMax =
+    chartData.length > 0
+      ? Number(
+          chartData[chartData.length - 1][
+            useMonthAxis ? "elapsedMonths" : "elapsedYears"
+          ] ?? 0,
+        )
+      : 1;
+  const xTicks = buildIntegerTicks(xMax);
 
   return (
     <CalculatorPage
@@ -126,49 +151,44 @@ export function LoanRepaymentCalculator() {
       description={t("loanRepayment.description")}
       inputPanelTitle={t("calculatorPage.inputs")}
       resultsPanelTitle={t("calculatorPage.results")}
+      gridVariant="resultsWide"
       form={
         <div className={styles.stack}>
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>{t("loanRepayment.mode.title")}</h3>
-            <div className={styles.modeRow}>
-              <button
-                type="button"
-                className={`${styles.modeButton} ${normalizedState.m === "forward" ? styles.modeButtonActive : ""}`}
-                onClick={() => onChange("m", "forward")}
+            <Field label={t("loanRepayment.mode.title")}>
+              <select
+                className={styles.select}
+                value={normalizedState.m}
+                onChange={(event) => onChange("m", event.target.value)}
               >
-                {t("loanRepayment.mode.forward")}
-              </button>
-              <button
-                type="button"
-                className={`${styles.modeButton} ${normalizedState.m === "reverse" ? styles.modeButtonActive : ""}`}
-                onClick={() => onChange("m", "reverse")}
-              >
-                {t("loanRepayment.mode.reverse")}
-              </button>
-            </div>
+                <option value="forward">{t("loanRepayment.mode.forward")}</option>
+                <option value="reverse">{t("loanRepayment.mode.reverse")}</option>
+              </select>
+            </Field>
           </section>
 
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>{t("loanRepayment.fields.repaymentType.label")}</h3>
-            <div className={styles.modeRow}>
-              <button
-                type="button"
-                className={`${styles.modeButton} ${normalizedState.rt === "PI" ? styles.modeButtonActive : ""}`}
-                onClick={() => onChange("rt", "PI")}
+            <Field label={t("loanRepayment.fields.repaymentType.label")}>
+              <select
+                className={styles.select}
+                value={normalizedState.rt}
+                onChange={(event) => onChange("rt", event.target.value)}
+                title={
+                  normalizedState.m === "reverse"
+                    ? t("loanRepayment.note.reverseIoNotSupported")
+                    : undefined
+                }
               >
-                {t("loanRepayment.repaymentType.pi")}
-              </button>
-              <button
-                type="button"
-                className={`${styles.modeButton} ${normalizedState.rt === "IO" ? styles.modeButtonActive : ""}`}
-                onClick={() => onChange("rt", "IO")}
-                disabled={normalizedState.m === "reverse"}
-              >
-                {t("loanRepayment.repaymentType.io")}
-              </button>
-            </div>
+                <option value="PI">{t("loanRepayment.repaymentType.pi")}</option>
+                <option value="IO" disabled={normalizedState.m === "reverse"}>
+                  {t("loanRepayment.repaymentType.io")}
+                </option>
+              </select>
+            </Field>
             <p className={styles.hint}>{t("loanRepayment.help.io")}</p>
-            {normalizedState.m === "reverse" ? (
+            {normalizedState.m === "reverse" && normalizedState.rt === "IO" ? (
               <p className={styles.issue}>{t("loanRepayment.note.reverseIoNotSupported")}</p>
             ) : null}
           </section>
@@ -351,22 +371,52 @@ export function LoanRepaymentCalculator() {
               <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>{t("loanRepayment.chart.title")}</h3>
                 <div className={styles.chartWrap}>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <ComposedChart data={chartData}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart
+                      key={chartKey}
+                      data={chartData}
+                      margin={{ top: 44, right: 48, left: 48, bottom: 44 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis
+                        type="number"
                         dataKey={useMonthAxis ? "elapsedMonths" : "elapsedYears"}
+                        domain={[0, Math.max(1, Math.ceil(xMax))]}
+                        ticks={xTicks}
+                        allowDecimals={false}
+                        label={{
+                          value: useMonthAxis
+                            ? t("loanRepayment.chart.axisXMonths")
+                            : t("loanRepayment.chart.axisXYears"),
+                          position: "bottom",
+                          offset: 14,
+                          fill: "var(--muted)",
+                        }}
                         tick={{ fill: "var(--muted)", fontSize: 12 }}
                         tickFormatter={(value: number) => formatWhole(value)}
                       />
                       <YAxis
                         yAxisId="balance"
+                        label={{
+                          value: t("loanRepayment.chart.axisYBalance"),
+                          angle: -90,
+                          position: "left",
+                          offset: 8,
+                          fill: "var(--muted)",
+                        }}
                         tick={{ fill: "var(--muted)", fontSize: 12 }}
                         tickFormatter={(value: number) => numberFormatter.format(value)}
                       />
                       <YAxis
                         yAxisId="cashflow"
                         orientation="right"
+                        label={{
+                          value: t("loanRepayment.chart.axisYCashflow"),
+                          angle: 90,
+                          position: "right",
+                          offset: 8,
+                          fill: "var(--muted)",
+                        }}
                         tick={{ fill: "var(--muted)", fontSize: 12 }}
                         tickFormatter={(value: number) => numberFormatter.format(value)}
                       />
@@ -390,7 +440,11 @@ export function LoanRepaymentCalculator() {
                         }}
                         cursor={{ stroke: "var(--border)", strokeDasharray: "4 4" }}
                       />
-                      <Legend />
+                      <Legend
+                        verticalAlign="top"
+                        align="center"
+                        wrapperStyle={{ top: 6 }}
+                      />
                       <Line
                         yAxisId="balance"
                         type="monotone"
@@ -398,18 +452,23 @@ export function LoanRepaymentCalculator() {
                         stroke="var(--accent)"
                         strokeWidth={2}
                         dot={false}
+                        isAnimationActive={false}
                         name={t("loanRepayment.chart.balance")}
                       />
                       <Bar
                         yAxisId="cashflow"
                         dataKey="interest"
+                        stackId="payment"
                         fill="#d97706"
+                        isAnimationActive={false}
                         name={t("loanRepayment.chart.interest")}
                       />
                       <Bar
                         yAxisId="cashflow"
                         dataKey="principal"
+                        stackId="payment"
                         fill="#2563eb"
+                        isAnimationActive={false}
                         name={t("loanRepayment.chart.principal")}
                       />
                     </ComposedChart>

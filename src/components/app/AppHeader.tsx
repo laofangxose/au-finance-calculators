@@ -27,6 +27,14 @@ export function AppHeader() {
             {t("nav.home")}
           </Link>
           <Link
+            href="/calculators/loan-repayment"
+            className={`${styles.navLink} ${
+              pathname === "/calculators/loan-repayment" ? styles.navLinkActive : ""
+            }`}
+          >
+            {t("nav.loanRepayment")}
+          </Link>
+          <Link
             href="/novated-lease"
             className={`${styles.navLink} ${
               pathname === "/novated-lease" ? styles.navLinkActive : ""
