@@ -17,6 +17,14 @@
     "langEnglish": "English",
     "langChinese": "中文"
   },
+  "footer": {
+    "navLabel": "Footer",
+    "copyright": "? 2026 AU Finance Calculators",
+    "about": "About",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
+  },
   "home": {
     "title": "Choose a calculator",
     "subtitle": "Estimate Australian finance scenarios with clear assumptions.",
@@ -35,6 +43,40 @@
   "calculatorPage": {
     "inputs": "Inputs",
     "results": "Results"
+  },
+  "about": {
+    "title": "About",
+    "paragraph1": "AU Finance Calculators is an independent project focused on practical Australian finance tools.",
+    "paragraph2": "This website is designed as a decision-support tool to help you compare scenarios quickly and consistently.",
+    "paragraph3": "It does not provide personal financial advice, tax advice, or legal advice.",
+    "paragraph4": "All estimates are generated using transparent assumptions so you can review what drives the result."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: 2026",
+    "p1": "We do not collect personal information unless you voluntarily provide it, such as by emailing us for support or feedback.",
+    "p2": "Calculator inputs and outputs are processed client-side in your browser.",
+    "p3": "We do not sell personal information.",
+    "p4": "If third-party advertising is added in the future, those providers may use cookies or similar technologies subject to their own policies.",
+    "p5": "If you contact us by email, we use your message details only to respond to your inquiry."
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "lastUpdated": "Last updated: 2026",
+    "p1": "This website is provided for informational purposes only.",
+    "p2": "Content and calculator outputs are not financial, tax, legal, or professional advice.",
+    "p3": "We do not guarantee accuracy, completeness, or suitability for your circumstances.",
+    "p4": "You are solely responsible for any decisions or actions you take based on this website.",
+    "p5": "To the maximum extent permitted by law, we exclude liability for any loss or damage arising from use of, or reliance on, this website and its outputs."
+  },
+  "contact": {
+    "title": "Contact",
+    "emailLabel": "Email",
+    "emailValue": "au.finance.tools@gmail.com",
+    "instructionsTitle": "When reporting an issue, please include:",
+    "i1": "Calculator type",
+    "i2": "Input values used",
+    "i3": "A clear description of the problem"
   },
   "novated": {
     "title": "Novated Lease Calculator",
@@ -90,6 +132,7 @@
     "issueHighDeduction": "The deductions look high compared with salary. Please review your inputs and assumptions.",
     "issueNegativeTaxableIncome": "These inputs would reduce taxable income below zero. Please adjust salary or package amounts.",
     "disclaimer": "This website and its outputs are provided for general informational purposes only and do not constitute financial, taxation, legal, or other professional advice. All calculations are estimates based on user inputs and model assumptions, may be incomplete or inaccurate, and may not reflect your personal circumstances, employer policy, lender terms, or current law. You should obtain independent professional advice before making any financial decision. To the maximum extent permitted by law, the website owner, developer, and contributors exclude all liability for any loss, damage, cost, or claim arising from use of, or reliance on, this website or its outputs.",
+    "disclaimerShort": "Estimates only. This calculator provides general information and is not financial, tax, or legal advice.",
     "sources": {
       "incomeTaxRates": "ATO individual income tax rates",
       "medicareLevy": "ATO Medicare levy",
@@ -213,3 +256,4 @@
     }
   }
 }
+

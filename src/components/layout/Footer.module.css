@@ -1,0 +1,45 @@
+.footer {
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  background: color-mix(in srgb, var(--panel) 84%, transparent);
+}
+
+.inner {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 1rem 1.25rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.copy {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.link {
+  font-size: 0.86rem;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dot {
+  color: var(--muted);
+}
+
+@media (max-width: 740px) {
+  .inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

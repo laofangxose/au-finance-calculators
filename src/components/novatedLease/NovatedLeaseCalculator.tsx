@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useRef,
   useState,
@@ -355,7 +356,14 @@ export function NovatedLeaseCalculator() {
         </div>
       }
       disclaimer={
-        <p>{t("novated.disclaimer")}</p>
+        <div className={styles.disclaimerBlock}>
+          <p>{t("novated.disclaimerShort")}</p>
+          <p className={styles.disclaimerLinks}>
+            <Link href="/terms">{t("footer.terms")}</Link>
+            <span> · </span>
+            <Link href="/privacy">{t("footer.privacy")}</Link>
+          </p>
+        </div>
       }
       form={
         <div

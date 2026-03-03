@@ -76,7 +76,7 @@
 }
 
 .errorText {
-  color: #a12929;
+  color: var(--error-fg);
   font-size: 0.77rem;
 }
 
@@ -118,6 +118,16 @@
 .summary {
   display: grid;
   gap: 1rem;
+}
+
+.disclaimerBlock {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.disclaimerLinks a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .executiveSection,
@@ -275,15 +285,15 @@
 }
 
 .issueError {
-  background: #fff2f2;
-  border: 1px solid #efb7b7;
-  color: #942a2a;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-fg);
 }
 
 .issueWarning {
-  background: #fff8ec;
-  border: 1px solid #efdcab;
-  color: #885f17;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-fg);
 }
 
 .sourceList {
