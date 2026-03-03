@@ -15,7 +15,7 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1rem 1.1rem;
-  box-shadow: 0 14px 40px rgba(24, 32, 39, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .headerTop {
@@ -60,7 +60,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.7rem 0.8rem;
-  box-shadow: 0 10px 28px rgba(24, 32, 39, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .disclaimer {
@@ -78,7 +78,7 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 14px 40px rgba(24, 32, 39, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .panelTitle {

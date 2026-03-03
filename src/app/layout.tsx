@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppHeader } from "@/components/app/AppHeader";
+import { AppProviders } from "@/components/app/AppProviders";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,7 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AU Finance Calculators",
+  title: {
+    default: "AU Finance Calculators (beta)",
+    template: "%s | AU Finance Calculators (beta)",
+  },
   description: "Australia-focused financial calculators with transparent assumptions.",
 };
 
@@ -25,7 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <AppProviders>
+          <AppHeader />
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

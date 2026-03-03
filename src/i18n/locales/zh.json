@@ -1,0 +1,215 @@
+{
+  "app": {
+    "name": "AU Finance Calculators",
+    "beta": "beta"
+  },
+  "nav": {
+    "home": "首页",
+    "calculators": "计算器",
+    "novatedLease": "Novated Lease"
+  },
+  "controls": {
+    "language": "语言",
+    "theme": "主题",
+    "themeSystem": "跟随系统",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "langEnglish": "English",
+    "langChinese": "中文"
+  },
+  "home": {
+    "title": "选择计算器",
+    "subtitle": "基于澳洲规则的估算工具，关键假设清晰可见。",
+    "disclaimer": "仅供估算参考，不构成财务、税务或法律建议。",
+    "activeBadge": "可用",
+    "comingSoonBadge": "即将推出",
+    "openCalculator": "打开计算器",
+    "comingSoonAction": "即将推出",
+    "novatedTitle": "Novated Lease Calculator",
+    "novatedDesc": "估算薪资打包影响、税务变化，以及与直接购车的成本对比。",
+    "interestTitle": "Interest Rate Calculator",
+    "interestDesc": "比较贷款利率与还款变化，关键假设透明。",
+    "taxTitle": "Income Tax Calculator",
+    "taxDesc": "基于澳洲税率与 Medicare levy 估算税后收入。"
+  },
+  "calculatorPage": {
+    "inputs": "输入",
+    "results": "结果"
+  },
+  "novated": {
+    "title": "Novated Lease Calculator",
+    "description": "建议先使用报价模式；如需精细控制，再切换详细模式。",
+    "calculate": "计算",
+    "statusDirty": "输入已变更，请点击“计算”更新结果。",
+    "statusFixErrors": "请先修正输入错误后再计算。",
+    "statusLatest": "结果已是最新。",
+    "statusEditing": "你仍在输入中，完成后点击“计算”。",
+    "statusOutdated": "结果已过期。",
+    "inputAttention": "部分输入需要修正后才能显示结果。",
+    "sectionInputStyle": "输入模式",
+    "sectionYourSituation": "你的情况",
+    "sectionRunningCosts": "用车成本",
+    "sectionQuoteInputs": "报价输入",
+    "advancedDetailed": "高级选项（详细模式）",
+    "advancedQuote": "高级选项（报价模式可选）",
+    "quickGlossary": "悬停或聚焦可查看术语说明：",
+    "executiveSummary": "结果摘要",
+    "comparisonTitle": "全周期总成本对比",
+    "breakdownTitle": "详细拆解",
+    "assumptionsTitle": "假设",
+    "sourcesTitle": "数据来源",
+    "glossaryTitle": "术语表",
+    "differenceSave": "Novated Lease 成本更低",
+    "differenceBuyCheaper": "直接购车成本更低",
+    "differenceSimilar": "两者成本接近",
+    "differenceExplain": "基于全周期总成本：{label}。",
+    "taxSavingsOverTerm": "租赁期内预计节省税费与 Medicare levy：{value}。",
+    "rateApplied": "对比使用的资金收益率假设为 {value}%。",
+    "novatedMonthlyOutOfPocket": "Novated 每月自付",
+    "buyMonthlyEquivalent": "直接购车月度等效成本",
+    "novatedTotalTerm": "Novated 总成本（全周期）",
+    "totalDifferenceTerm": "总成本差额（全周期）",
+    "cardNovated": "Novated",
+    "cardBuyOutright": "直接购车",
+    "linePreTaxAnnual": "税前扣款（年）",
+    "linePostTaxAnnual": "税后扣款（年）",
+    "lineTaxSaved": "节省税费",
+    "lineTotalTermInclResidual": "全周期总成本（含 Residual）",
+    "lineOpportunityBenefit": "机会成本收益（复利，全周期）",
+    "lineVehiclePrice": "车辆价格",
+    "lineTotalCashOutlay": "总现金支出（全周期）",
+    "lineRunningCostsTerm": "全周期用车成本",
+    "lineLctInPrice": "车价中估算的 LCT",
+    "lineAnnualPackageBeforeEcm": "ECM 前年度打包成本",
+    "linePeriodicRepayment": "每期租赁还款",
+    "lineResidual": "Residual / 尾款",
+    "lineFbtGross": "FBT 应税价值（毛额）",
+    "issueQuoteRateFallback": "你的报价未提供利率。当前使用默认利率估算。若你知道报价利率，请在高级选项中填写以提高准确性。",
+    "issueVarianceModerate": "你的报价与模型估算有一定差异，通常由费用范围或假设不同导致。",
+    "issueVarianceHigh": "你的报价与模型估算差异较大。建议核对费用项目与关键假设。",
+    "issueHighDeduction": "扣款占收入比例偏高，请复核输入与假设。",
+    "issueNegativeTaxableIncome": "该输入会使应税收入低于 0，请调整收入或打包金额。",
+    "disclaimer": "本网站及其输出仅供一般信息参考，不构成财务、税务、法律或其他专业建议。所有计算均基于用户输入与模型假设的估算，可能存在不完整或不准确之处，且未必适用于你的个人情况、雇主政策、融资条款或最新法规。你应在作出任何财务决策前获取独立的专业意见。在适用法律允许的最大范围内，网站所有者、开发者及贡献者不对因使用或依赖本网站及其输出而产生的任何损失、损害、费用或索赔承担责任。",
+    "sources": {
+      "incomeTaxRates": "ATO 个人所得税税率",
+      "medicareLevy": "ATO Medicare levy",
+      "fbtStatutory": "ATO 车辆福利的 FBT 应税价值（法定公式）",
+      "evExemption": "ATO 电动车 FBT 豁免",
+      "phevTransition": "ATO 插混车辆 FBT 过渡规则",
+      "lctThresholds": "ATO 豪华车税（LCT）税率与门槛"
+    },
+    "fields": {
+      "im": {
+        "label": "输入模式",
+        "description": "报价模式更快；详细模式可做高级设置。",
+        "optionQuote": "报价模式（推荐）",
+        "optionDetailed": "详细模式（高级）"
+      },
+      "pp": {
+        "label": "车辆价格（含 GST）",
+        "description": "输入落地价（含 GST）。"
+      },
+      "vt": {
+        "label": "车辆类型",
+        "description": "选择燃料或技术类型。"
+      },
+      "tm": {
+        "label": "租期",
+        "description": "选择合同期限。"
+      },
+      "s": {
+        "label": "税前年薪",
+        "description": "打包前税前年收入。"
+      },
+      "pf": {
+        "label": "发薪频率",
+        "description": "你多久发一次工资。"
+      },
+      "fy": {
+        "label": "财年",
+        "description": "估算使用的税务年度。"
+      },
+      "ocr": {
+        "label": "资金收益率（可选）",
+        "description": "若资金不用于一次性购车，可获得的年化收益率。"
+      },
+      "qmp": {
+        "label": "报价月供",
+        "description": "填写报价中的月度租赁还款。"
+      },
+      "rat": {
+        "label": "年度用车成本（总额）",
+        "description": "若无明细，可填年度总额。"
+      },
+      "irc": {
+        "label": "将用车成本纳入打包",
+        "description": "切换是否把用车成本计入薪资打包。"
+      },
+      "qn": {
+        "label": "报价提供方",
+        "description": "可选，仅用于你自己记录。"
+      },
+      "qmf": {
+        "label": "报价月管理费",
+        "description": "可选，填写报价中的月度管理费。"
+      },
+      "quf": {
+        "label": "报价一次性费用",
+        "description": "可选，填写报价中的一次性费用总额。"
+      },
+      "qrv": {
+        "label": "报价 Residual",
+        "description": "可选，填写报价中的 Residual / 尾款。"
+      }
+    },
+    "vehicle": {
+      "ice": "汽油 / 柴油",
+      "hev": "混合动力",
+      "phev": "插电混动",
+      "bev": "纯电动车",
+      "fcev": "氢能源车"
+    },
+    "term": {
+      "12": "12 个月",
+      "24": "24 个月",
+      "36": "36 个月",
+      "48": "48 个月",
+      "60": "60 个月"
+    },
+    "pay": {
+      "weekly": "每周",
+      "fortnightly": "每两周",
+      "monthly": "每月"
+    },
+    "glossary": {
+      "ICE": {
+        "short": "内燃机车辆。",
+        "detail": "通常指汽油或柴油车辆，不属于纯电 EV。"
+      },
+      "BEV": {
+        "short": "电池纯电动车。",
+        "detail": "完全由电池和电机驱动的车辆。"
+      },
+      "PHEV": {
+        "short": "插电式混合动力车。",
+        "detail": "可外接充电。2025 年 4 月 1 日后 FBT 规则可能不同。"
+      },
+      "FBT": {
+        "short": "Fringe Benefits Tax（福利税）。",
+        "detail": "雇主提供非现金福利（如车辆）时可能适用的税。"
+      },
+      "ECM": {
+        "short": "Employee Contribution Method。",
+        "detail": "通过员工税后出资来降低或抵消 FBT 应税价值。"
+      },
+      "Residual": {
+        "short": "租期结束时的尾款。",
+        "detail": "到期可能需要支付、再融资或通过卖车覆盖。"
+      },
+      "Gross-up Factor": {
+        "short": "FBT 毛额化系数。",
+        "detail": "在详细 FBT 计算中，将应税价值转换为毛额化价值。"
+      }
+    }
+  }
+}

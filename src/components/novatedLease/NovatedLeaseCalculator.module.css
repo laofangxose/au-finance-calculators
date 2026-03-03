@@ -54,13 +54,13 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.58rem 0.65rem;
-  background: #fff;
+  background: var(--panel);
   color: inherit;
 }
 
 .input:focus,
 .select:focus {
-  outline: 2px solid color-mix(in srgb, var(--accent) 24%, white);
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-color: var(--accent);
 }
 
@@ -326,7 +326,7 @@
   font-weight: 700;
   line-height: 1.2;
   cursor: help;
-  background: #fff;
+  background: var(--panel);
   color: inherit;
 }
 
@@ -339,7 +339,7 @@
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--panel);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   font-size: 0.76rem;
   line-height: 1.3;

@@ -1,0 +1,215 @@
+{
+  "app": {
+    "name": "AU Finance Calculators",
+    "beta": "beta"
+  },
+  "nav": {
+    "home": "Home",
+    "calculators": "Calculators",
+    "novatedLease": "Novated Lease"
+  },
+  "controls": {
+    "language": "Language",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "langEnglish": "English",
+    "langChinese": "中文"
+  },
+  "home": {
+    "title": "Choose a calculator",
+    "subtitle": "Estimate Australian finance scenarios with clear assumptions.",
+    "disclaimer": "Estimates only. Not financial, tax, or legal advice.",
+    "activeBadge": "Available now",
+    "comingSoonBadge": "Coming soon",
+    "openCalculator": "Open calculator",
+    "comingSoonAction": "Coming soon",
+    "novatedTitle": "Novated Lease Calculator",
+    "novatedDesc": "Estimate salary packaging impact, tax effect, and buy-out comparison.",
+    "interestTitle": "Interest Rate Calculator",
+    "interestDesc": "Compare loan rates and repayment impact with clear assumptions.",
+    "taxTitle": "Income Tax Calculator",
+    "taxDesc": "Estimate take-home pay using Australian tax brackets and Medicare levy."
+  },
+  "calculatorPage": {
+    "inputs": "Inputs",
+    "results": "Results"
+  },
+  "novated": {
+    "title": "Novated Lease Calculator",
+    "description": "Start with Quote mode. Use Detailed mode only if you need advanced controls.",
+    "calculate": "Calculate",
+    "statusDirty": "Inputs changed. Click Calculate to refresh results.",
+    "statusFixErrors": "Fix input errors to calculate.",
+    "statusLatest": "Results are up to date.",
+    "statusEditing": "You are still editing. Click Calculate when ready.",
+    "statusOutdated": "Results are out of date.",
+    "inputAttention": "Some inputs need attention before results can be shown.",
+    "sectionInputStyle": "Input mode",
+    "sectionYourSituation": "Your situation",
+    "sectionRunningCosts": "Running costs",
+    "sectionQuoteInputs": "Quote inputs",
+    "advancedDetailed": "Advanced (Detailed mode)",
+    "advancedQuote": "Advanced (Quote mode optional)",
+    "quickGlossary": "Hover or focus for definitions:",
+    "executiveSummary": "Executive summary",
+    "comparisonTitle": "Total Cost Comparison (Full Term)",
+    "breakdownTitle": "Detailed breakdown",
+    "assumptionsTitle": "Assumptions",
+    "sourcesTitle": "Data sources",
+    "glossaryTitle": "Glossary",
+    "differenceSave": "You save with novated lease",
+    "differenceBuyCheaper": "Buy outright is cheaper",
+    "differenceSimilar": "Costs are similar",
+    "differenceExplain": "{label} based on full-term total cost.",
+    "taxSavingsOverTerm": "Estimated tax and Medicare savings over the lease term: {value}.",
+    "rateApplied": "Comparison applies savings interest rate {value}%.",
+    "novatedMonthlyOutOfPocket": "Novated monthly out-of-pocket",
+    "buyMonthlyEquivalent": "Buy outright monthly equivalent",
+    "novatedTotalTerm": "Novated total cost (full term)",
+    "totalDifferenceTerm": "Total cost difference (full term)",
+    "cardNovated": "Novated",
+    "cardBuyOutright": "Buy outright",
+    "linePreTaxAnnual": "Pre-tax deduction (annual)",
+    "linePostTaxAnnual": "Post-tax contribution (annual)",
+    "lineTaxSaved": "Tax and levy saved",
+    "lineTotalTermInclResidual": "Total cost over full term (incl. Residual)",
+    "lineOpportunityBenefit": "Opportunity cost benefit (compounded, full term)",
+    "lineVehiclePrice": "Vehicle price",
+    "lineTotalCashOutlay": "Total cash outlay (full term)",
+    "lineRunningCostsTerm": "Running costs over full term",
+    "lineLctInPrice": "Estimated LCT in price",
+    "lineAnnualPackageBeforeEcm": "Annual package cost before ECM",
+    "linePeriodicRepayment": "Periodic lease repayment",
+    "lineResidual": "Residual / balloon",
+    "lineFbtGross": "FBT taxable value (gross)",
+    "issueQuoteRateFallback": "Your quote does not include an interest rate. We used a default estimate. Add your quote rate in Advanced for better accuracy.",
+    "issueVarianceModerate": "Your quote and this estimate are somewhat different. This is common when quote fees and assumptions differ.",
+    "issueVarianceHigh": "Your quote and this estimate are quite different. Check included fees and assumptions for a closer comparison.",
+    "issueHighDeduction": "The deductions look high compared with salary. Please review your inputs and assumptions.",
+    "issueNegativeTaxableIncome": "These inputs would reduce taxable income below zero. Please adjust salary or package amounts.",
+    "disclaimer": "This website and its outputs are provided for general informational purposes only and do not constitute financial, taxation, legal, or other professional advice. All calculations are estimates based on user inputs and model assumptions, may be incomplete or inaccurate, and may not reflect your personal circumstances, employer policy, lender terms, or current law. You should obtain independent professional advice before making any financial decision. To the maximum extent permitted by law, the website owner, developer, and contributors exclude all liability for any loss, damage, cost, or claim arising from use of, or reliance on, this website or its outputs.",
+    "sources": {
+      "incomeTaxRates": "ATO individual income tax rates",
+      "medicareLevy": "ATO Medicare levy",
+      "fbtStatutory": "ATO car fringe benefit taxable value (statutory formula)",
+      "evExemption": "ATO electric cars exemption",
+      "phevTransition": "ATO plug-in hybrid electric vehicle FBT transition",
+      "lctThresholds": "ATO luxury car tax rates and thresholds"
+    },
+    "fields": {
+      "im": {
+        "label": "Input mode",
+        "description": "Quote mode is faster. Detailed mode gives full control.",
+        "optionQuote": "Quote mode (recommended)",
+        "optionDetailed": "Detailed mode (advanced)"
+      },
+      "pp": {
+        "label": "Vehicle price (incl. GST)",
+        "description": "Enter drive-away price including GST."
+      },
+      "vt": {
+        "label": "Vehicle type",
+        "description": "Select the fuel or technology type."
+      },
+      "tm": {
+        "label": "Lease term",
+        "description": "Choose contract length."
+      },
+      "s": {
+        "label": "Gross annual salary",
+        "description": "Pre-tax salary before packaging."
+      },
+      "pf": {
+        "label": "Pay frequency",
+        "description": "How often you are paid."
+      },
+      "fy": {
+        "label": "Financial year",
+        "description": "Tax year used for estimates."
+      },
+      "ocr": {
+        "label": "Savings interest rate (optional)",
+        "description": "Estimated annual return if cash stays invested."
+      },
+      "qmp": {
+        "label": "Quoted monthly lease payment",
+        "description": "Use the monthly amount from your quote."
+      },
+      "rat": {
+        "label": "Annual running costs (total)",
+        "description": "Use one yearly total if breakdown is unavailable."
+      },
+      "irc": {
+        "label": "Include running costs in package",
+        "description": "Toggle whether running costs are packaged."
+      },
+      "qn": {
+        "label": "Quote provider name",
+        "description": "Optional. For your own tracking."
+      },
+      "qmf": {
+        "label": "Quoted monthly admin fee",
+        "description": "Optional fee shown in the quote."
+      },
+      "quf": {
+        "label": "Quoted upfront fees",
+        "description": "Optional total upfront fees from quote."
+      },
+      "qrv": {
+        "label": "Quoted residual value",
+        "description": "Optional Residual / balloon from quote."
+      }
+    },
+    "vehicle": {
+      "ice": "Petrol / Diesel",
+      "hev": "Hybrid",
+      "phev": "Plug-in Hybrid",
+      "bev": "Electric vehicle",
+      "fcev": "Hydrogen vehicle"
+    },
+    "term": {
+      "12": "12 months",
+      "24": "24 months",
+      "36": "36 months",
+      "48": "48 months",
+      "60": "60 months"
+    },
+    "pay": {
+      "weekly": "Weekly",
+      "fortnightly": "Fortnightly",
+      "monthly": "Monthly"
+    },
+    "glossary": {
+      "ICE": {
+        "short": "Internal combustion engine vehicle.",
+        "detail": "A petrol or diesel vehicle that is not a full battery EV."
+      },
+      "BEV": {
+        "short": "Battery electric vehicle.",
+        "detail": "A fully electric vehicle powered by a battery and motor."
+      },
+      "PHEV": {
+        "short": "Plug-in hybrid electric vehicle.",
+        "detail": "A hybrid with external charging. FBT treatment can differ after 1 April 2025."
+      },
+      "FBT": {
+        "short": "Fringe Benefits Tax.",
+        "detail": "Tax that can apply when an employer provides non-cash benefits, including cars."
+      },
+      "ECM": {
+        "short": "Employee Contribution Method.",
+        "detail": "Post-tax employee contributions used to reduce or eliminate FBT taxable value."
+      },
+      "Residual": {
+        "short": "Balloon amount at lease end.",
+        "detail": "Amount due at lease end; may be paid, refinanced, or sold against."
+      },
+      "Gross-up Factor": {
+        "short": "FBT gross-up conversion factor.",
+        "detail": "Factor used to convert taxable value to grossed-up value in detailed FBT calculations."
+      }
+    }
+  }
+}

@@ -4,6 +4,8 @@ import styles from "./CalculatorPage.module.css";
 type CalculatorPageProps = {
   title: string;
   description: string;
+  inputPanelTitle?: string;
+  resultsPanelTitle?: string;
   headerAction?: ReactNode;
   resultsTop?: ReactNode;
   disclaimer?: ReactNode;
@@ -14,6 +16,8 @@ type CalculatorPageProps = {
 export function CalculatorPage({
   title,
   description,
+  inputPanelTitle = "Inputs",
+  resultsPanelTitle = "Results",
   headerAction,
   resultsTop,
   disclaimer,
@@ -35,7 +39,7 @@ export function CalculatorPage({
 
         <section className={styles.grid} aria-label="Calculator layout">
           <div className={styles.panel}>
-            <h2 className={styles.panelTitle}>Inputs</h2>
+            <h2 className={styles.panelTitle}>{inputPanelTitle}</h2>
             {form}
           </div>
           <div className={styles.resultsColumn}>
@@ -43,7 +47,7 @@ export function CalculatorPage({
               <div className={styles.resultsTop}>{resultsTop}</div>
             ) : null}
             <div className={styles.panel}>
-              <h2 className={styles.panelTitle}>Results</h2>
+              <h2 className={styles.panelTitle}>{resultsPanelTitle}</h2>
               {results}
             </div>
           </div>

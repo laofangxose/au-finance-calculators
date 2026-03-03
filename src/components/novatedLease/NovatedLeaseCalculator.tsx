@@ -7,6 +7,7 @@ import {
 } from "react";
 import { novatedLeaseGlossary } from "@/content/glossary";
 import { CalculatorPage } from "@/components/calculator/CalculatorPage";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   DEFAULT_NOVATED_LEASE_FORM_STATE,
   applyInputModeAdapter,
@@ -34,31 +35,31 @@ const numberFormatter = new Intl.NumberFormat("en-AU", {
 
 const DATA_SOURCE_LINKS = [
   {
-    label: "ATO individual income tax rates",
+    key: "incomeTaxRates",
     href: "https://www.ato.gov.au/rates/individual-income-tax-rates/",
   },
   {
-    label: "ATO Medicare levy",
+    key: "medicareLevy",
     href:
       "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/what-is-the-medicare-levy",
   },
   {
-    label: "ATO car fringe benefit taxable value (statutory formula)",
+    key: "fbtStatutory",
     href:
       "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/cars-and-fbt/taxable-value-of-a-car-fringe-benefit",
   },
   {
-    label: "ATO electric cars exemption",
+    key: "evExemption",
     href:
       "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
   },
   {
-    label: "ATO plug-in hybrid electric vehicle FBT transition",
+    key: "phevTransition",
     href:
       "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/fbt-on-plug-in-hybrid-electric-vehicles",
   },
   {
-    label: "ATO luxury car tax rates and thresholds",
+    key: "lctThresholds",
     href: "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/rates-and-thresholds",
   },
 ];
@@ -70,19 +71,22 @@ function glossary(term: string) {
 }
 
 function GlossaryTip({ term, label }: { term: string; label?: string }) {
+  const { t } = useI18n();
   const entry = glossary(term);
   if (!entry) return null;
+  const short = t(`novated.glossary.${term}.short`, { fallback: entry.short });
+  const detail = t(`novated.glossary.${term}.detail`, { fallback: entry.detail });
   return (
     <span className={styles.glossaryTip}>
       <button
         type="button"
         className={styles.glossaryAbbr}
-        aria-label={`${entry.term}: ${entry.short}`}
+        aria-label={`${entry.term}: ${short}`}
       >
         {label ?? term}
       </button>
       <span className={styles.glossaryTooltip} role="tooltip">
-        <strong>{entry.term}:</strong> {entry.short} {entry.detail}
+        <strong>{entry.term}:</strong> {short} {detail}
       </span>
     </span>
   );
@@ -105,14 +109,19 @@ function TextField({
   type = "text",
   step,
 }: TextFieldProps) {
+  const { t } = useI18n();
   const meta = novatedLeaseFieldMeta[name];
+  const label = t(`novated.fields.${name}.label`, { fallback: meta.label });
+  const description = t(`novated.fields.${name}.description`, {
+    fallback: meta.description,
+  });
   return (
     <label className={styles.field}>
       <span className={styles.label}>
-        {meta.label}
+        {label}
         {meta.unit !== "none" ? ` (${meta.unit})` : ""}
       </span>
-      <span className={styles.hint}>{meta.description}</span>
+      <span className={styles.hint}>{description}</span>
       <input
         className={styles.input}
         type={type}
@@ -141,11 +150,16 @@ function SelectField({
   onChange,
   options,
 }: SelectFieldProps) {
+  const { t } = useI18n();
   const meta = novatedLeaseFieldMeta[name];
+  const label = t(`novated.fields.${name}.label`, { fallback: meta.label });
+  const description = t(`novated.fields.${name}.description`, {
+    fallback: meta.description,
+  });
   return (
     <label className={styles.field}>
-      <span className={styles.label}>{meta.label}</span>
-      <span className={styles.hint}>{meta.description}</span>
+      <span className={styles.label}>{label}</span>
+      <span className={styles.hint}>{description}</span>
       <select
         className={styles.select}
         value={state[name]}
@@ -170,17 +184,22 @@ type CheckboxFieldProps = {
 };
 
 function CheckboxField({ name, state, onChange }: CheckboxFieldProps) {
+  const { t } = useI18n();
   const meta = novatedLeaseFieldMeta[name];
+  const label = t(`novated.fields.${name}.label`, { fallback: meta.label });
+  const description = t(`novated.fields.${name}.description`, {
+    fallback: meta.description,
+  });
   return (
     <label className={styles.field}>
-      <span className={styles.hint}>{meta.description}</span>
+      <span className={styles.hint}>{description}</span>
       <span className={styles.checkboxRow}>
         <input
           type="checkbox"
           checked={state[name] === "1"}
           onChange={(event) => onChange(name, event.target.checked ? "1" : "0")}
         />
-        <span className={styles.checkboxLabel}>{meta.label}</span>
+        <span className={styles.checkboxLabel}>{label}</span>
       </span>
     </label>
   );
@@ -197,29 +216,28 @@ function mergeFieldErrors(primary: FieldErrors, secondary: FieldErrors): FieldEr
   return merged;
 }
 
-function differenceLabel(value: number): string {
-  if (value < 0) return "You save with novated lease";
-  if (value > 0) return "Buy outright is cheaper";
-  return "Costs are similar";
+function differenceLabel(value: number, t: ReturnType<typeof useI18n>["t"]): string {
+  if (value < 0) return t("novated.differenceSave");
+  if (value > 0) return t("novated.differenceBuyCheaper");
+  return t("novated.differenceSimilar");
 }
 
-function toFriendlyIssueMessage(issue: { code: string; message: string }): string {
+function toFriendlyIssueMessage(
+  issue: { code: string; message: string },
+  t: ReturnType<typeof useI18n>["t"],
+): string {
   const mapped: Record<string, string> = {
-    QUOTE_INTEREST_RATE_INFERRED:
-      "Your quote does not show an interest rate. We used a typical default rate to estimate your results. For a more accurate result, enter the quote's interest rate in Advanced options.",
-    QUOTE_MODEL_VARIANCE_MODERATE:
-      "Your quote and this estimate are somewhat different. This is common when quote fees and assumptions differ.",
-    QUOTE_MODEL_VARIANCE_HIGH:
-      "Your quote and this estimate are quite different. Check included fees and assumptions for a closer comparison.",
-    HIGH_DEDUCTION_RATIO:
-      "The deductions look high compared with salary. Please review your inputs and assumptions.",
-    NEGATIVE_PACKAGED_TAXABLE_INCOME:
-      "These inputs would reduce taxable income below zero. Please adjust salary or package amounts.",
+    QUOTE_INTEREST_RATE_INFERRED: t("novated.issueQuoteRateFallback"),
+    QUOTE_MODEL_VARIANCE_MODERATE: t("novated.issueVarianceModerate"),
+    QUOTE_MODEL_VARIANCE_HIGH: t("novated.issueVarianceHigh"),
+    HIGH_DEDUCTION_RATIO: t("novated.issueHighDeduction"),
+    NEGATIVE_PACKAGED_TAXABLE_INCOME: t("novated.issueNegativeTaxableIncome"),
   };
   return mapped[issue.code] ?? issue.message;
 }
 
 export function NovatedLeaseCalculator() {
+  const { t } = useI18n();
   const formRef = useRef<HTMLDivElement | null>(null);
   const [isEditingInputs, setIsEditingInputs] = useState(false);
   const [state, setState] = useQueryState(DEFAULT_NOVATED_LEASE_FORM_STATE);
@@ -313,8 +331,10 @@ export function NovatedLeaseCalculator() {
 
   return (
     <CalculatorPage
-      title="Novated Lease Calculator"
-      description="Use Quote mode for a quick decision. Use Detailed mode for advanced assumptions."
+      title={t("novated.title")}
+      description={t("novated.description")}
+      inputPanelTitle={t("calculatorPage.inputs")}
+      resultsPanelTitle={t("calculatorPage.results")}
       resultsTop={
         <div className={styles.execActionRow}>
           <button
@@ -323,30 +343,19 @@ export function NovatedLeaseCalculator() {
             onClick={runCalculation}
             disabled={!canCalculate}
           >
-            Calculate
+            {t("novated.calculate")}
           </button>
           <p className={styles.muted}>
             {canCalculate
-              ? "Inputs changed. Click Calculate."
+              ? t("novated.statusDirty")
               : hasUiErrors
-                ? "Fix input errors to calculate."
-                : "Results are up to date."}
+                ? t("novated.statusFixErrors")
+                : t("novated.statusLatest")}
           </p>
         </div>
       }
       disclaimer={
-        <p>
-          The information on this website is provided for general informational
-          purposes only and does not constitute financial, taxation, legal, or
-          other professional advice. Calculations are estimates based on user
-          inputs and model assumptions, may not reflect your personal
-          circumstances, and should not be relied upon as the sole basis for
-          any decision. You should obtain independent professional advice before
-          acting. To the maximum extent permitted by applicable law, the
-          website owner, developer, and contributors disclaim all liability for
-          any loss, damage, cost, or claim arising from or connected with use
-          of, or reliance on, this website or its outputs.
-        </p>
+        <p>{t("novated.disclaimer")}</p>
       }
       form={
         <div
@@ -356,21 +365,31 @@ export function NovatedLeaseCalculator() {
           onBlurCapture={onFormBlurCapture}
         >
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Input Style</h3>
+            <h3 className={styles.sectionTitle}>{t("novated.sectionInputStyle")}</h3>
             <SelectField
               name="im"
               state={normalizedState}
               errors={fieldErrors}
               onChange={onChange}
               options={[
-                { value: "quote", label: "Quote mode (recommended)" },
-                { value: "detailed", label: "Detailed mode (advanced)" },
+                {
+                  value: "quote",
+                  label: t("novated.fields.im.optionQuote", {
+                    fallback: "Quote mode (recommended)",
+                  }),
+                },
+                {
+                  value: "detailed",
+                  label: t("novated.fields.im.optionDetailed", {
+                    fallback: "Detailed mode (advanced)",
+                  }),
+                },
               ]}
             />
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Your Situation</h3>
+            <h3 className={styles.sectionTitle}>{t("novated.sectionYourSituation")}</h3>
             <div className={styles.fieldGrid}>
               <TextField
                 name="pp"
@@ -386,11 +405,11 @@ export function NovatedLeaseCalculator() {
                 errors={fieldErrors}
                 onChange={onChange}
                 options={[
-                  { value: "ice", label: "Petrol / Diesel" },
-                  { value: "hev", label: "Hybrid" },
-                  { value: "phev", label: "Plug-in Hybrid" },
-                  { value: "bev", label: "Electric vehicle" },
-                  { value: "fcev", label: "Hydrogen vehicle" },
+                  { value: "ice", label: t("novated.vehicle.ice", { fallback: "Petrol / Diesel" }) },
+                  { value: "hev", label: t("novated.vehicle.hev", { fallback: "Hybrid" }) },
+                  { value: "phev", label: t("novated.vehicle.phev", { fallback: "Plug-in Hybrid" }) },
+                  { value: "bev", label: t("novated.vehicle.bev", { fallback: "Electric vehicle" }) },
+                  { value: "fcev", label: t("novated.vehicle.fcev", { fallback: "Hydrogen vehicle" }) },
                 ]}
               />
               <SelectField
@@ -399,11 +418,11 @@ export function NovatedLeaseCalculator() {
                 errors={fieldErrors}
                 onChange={onChange}
                 options={[
-                  { value: "12", label: "12 months" },
-                  { value: "24", label: "24 months" },
-                  { value: "36", label: "36 months" },
-                  { value: "48", label: "48 months" },
-                  { value: "60", label: "60 months" },
+                  { value: "12", label: t("novated.term.12", { fallback: "12 months" }) },
+                  { value: "24", label: t("novated.term.24", { fallback: "24 months" }) },
+                  { value: "36", label: t("novated.term.36", { fallback: "36 months" }) },
+                  { value: "48", label: t("novated.term.48", { fallback: "48 months" }) },
+                  { value: "60", label: t("novated.term.60", { fallback: "60 months" }) },
                 ]}
               />
               <TextField
@@ -420,9 +439,12 @@ export function NovatedLeaseCalculator() {
                 errors={fieldErrors}
                 onChange={onChange}
                 options={[
-                  { value: "weekly", label: "Weekly" },
-                  { value: "fortnightly", label: "Fortnightly" },
-                  { value: "monthly", label: "Monthly" },
+                  { value: "weekly", label: t("novated.pay.weekly", { fallback: "Weekly" }) },
+                  {
+                    value: "fortnightly",
+                    label: t("novated.pay.fortnightly", { fallback: "Fortnightly" }),
+                  },
+                  { value: "monthly", label: t("novated.pay.monthly", { fallback: "Monthly" }) },
                 ]}
               />
               <SelectField
@@ -450,7 +472,7 @@ export function NovatedLeaseCalculator() {
           {isDetailed ? (
             <>
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Running Costs</h3>
+                <h3 className={styles.sectionTitle}>{t("novated.sectionRunningCosts")}</h3>
                 <div className={styles.fieldGrid}>
                   <TextField name="rr" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
                   <TextField name="ri" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
@@ -461,7 +483,7 @@ export function NovatedLeaseCalculator() {
                 </div>
               </section>
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Advanced (Detailed mode)</summary>
+                <summary className={styles.detailsTitle}>{t("novated.advancedDetailed")}</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.fieldGrid}>
                     <TextField name="ir" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
@@ -499,7 +521,7 @@ export function NovatedLeaseCalculator() {
           ) : (
             <>
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Quote Inputs</h3>
+                <h3 className={styles.sectionTitle}>{t("novated.sectionQuoteInputs")}</h3>
                 <div className={styles.fieldGrid}>
                   <TextField name="qmp" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
                   <TextField name="rat" state={normalizedState} errors={fieldErrors} onChange={onChange} type="number" step="0.01" />
@@ -507,7 +529,7 @@ export function NovatedLeaseCalculator() {
                 </div>
               </section>
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Advanced (Quote mode optional)</summary>
+                <summary className={styles.detailsTitle}>{t("novated.advancedQuote")}</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.fieldGrid}>
                     <TextField name="qn" state={normalizedState} errors={fieldErrors} onChange={onChange} />
@@ -521,7 +543,7 @@ export function NovatedLeaseCalculator() {
           )}
 
           <p className={styles.muted}>
-            Hover or focus for definitions: <GlossaryTip term="FBT" />,{" "}
+            {t("novated.quickGlossary")} <GlossaryTip term="FBT" />,{" "}
             <GlossaryTip term="ECM" />, <GlossaryTip term="Residual" />,{" "}
             <GlossaryTip term="PHEV" />.
           </p>
@@ -531,43 +553,43 @@ export function NovatedLeaseCalculator() {
         <div className={styles.summary}>
           {isEditingInputs ? (
             <div className={styles.issueWarning}>
-              Results are out of date while you edit inputs.
+              {t("novated.statusEditing")}
             </div>
           ) : null}
           {!isEditingInputs && hasPendingRecalculation && !hasUiErrors ? (
-            <div className={styles.issueWarning}>Results are out of date.</div>
+            <div className={styles.issueWarning}>{t("novated.statusOutdated")}</div>
           ) : null}
           {hasUiErrors ? (
             <div className={styles.issueError}>
-              Some inputs need attention before results can be shown.
+              {t("novated.inputAttention")}
             </div>
           ) : null}
 
           {engineResult && comparison ? (
             <>
               <section className={styles.executiveSection}>
-                <h3 className={styles.execTitle}>Executive Summary</h3>
+                <h3 className={styles.execTitle}>{t("novated.executiveSummary")}</h3>
                 <div className={styles.headlineGrid}>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Novated monthly out-of-pocket</p>
+                    <p className={styles.headlineLabel}>{t("novated.novatedMonthlyOutOfPocket")}</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.novatedMonthlyOutOfPocket)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Buy outright monthly equivalent</p>
+                    <p className={styles.headlineLabel}>{t("novated.buyMonthlyEquivalent")}</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.monthlyEquivalentCost)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Novated total cost (term)</p>
+                    <p className={styles.headlineLabel}>{t("novated.novatedTotalTerm")}</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.novatedTotalCostOverTerm)}
                     </p>
                   </div>
                   <div className={styles.headlineCard}>
-                    <p className={styles.headlineLabel}>Total difference (term)</p>
+                    <p className={styles.headlineLabel}>{t("novated.totalDifferenceTerm")}</p>
                     <p className={styles.headlineValue}>
                       {currencyFormatter.format(comparison.totalCostDifferenceOverTerm)}
                     </p>
@@ -575,28 +597,39 @@ export function NovatedLeaseCalculator() {
                 </div>
                 <ul className={styles.explainList}>
                   <li>
-                    {differenceLabel(comparison.totalCostDifferenceOverTerm)} based on total
-                    cost over the full lease term.
+                    {t("novated.differenceExplain", {
+                      params: {
+                        label: differenceLabel(comparison.totalCostDifferenceOverTerm, t),
+                      },
+                    })}
                   </li>
                   <li>
-                    Estimated tax and Medicare savings over the lease term:{" "}
-                    {currencyFormatter.format(engineResult.taxComparison?.taxAndLevySavings ?? 0)}.
+                    {t("novated.taxSavingsOverTerm", {
+                      params: {
+                        value: currencyFormatter.format(
+                          engineResult.taxComparison?.taxAndLevySavings ?? 0,
+                        ),
+                      },
+                    })}
                   </li>
                   <li>
-                    Comparison applies savings interest rate{" "}
-                    {numberFormatter.format(comparison.opportunityCostRateAssumed)}%.
+                    {t("novated.rateApplied", {
+                      params: {
+                        value: numberFormatter.format(comparison.opportunityCostRateAssumed),
+                      },
+                    })}
                   </li>
                 </ul>
               </section>
 
               <section className={styles.compareSection}>
-                <h3 className={styles.execTitle}>Novated vs Buy Outright</h3>
+                <h3 className={styles.execTitle}>{t("novated.comparisonTitle")}</h3>
                 <div className={styles.compareGrid}>
                   <article className={styles.compareCard}>
-                    <h4 className={styles.compareTitle}>Novated</h4>
+                    <h4 className={styles.compareTitle}>{t("novated.cardNovated")}</h4>
                     <div className={styles.breakdownList}>
                       <div className={styles.row}>
-                        <span>Pre-tax deduction (annual)</span>
+                        <span>{t("novated.linePreTaxAnnual")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(
                             engineResult.packaging?.annualPreTaxDeduction ?? 0,
@@ -605,7 +638,7 @@ export function NovatedLeaseCalculator() {
                       </div>
                       <div className={styles.row}>
                         <span>
-                          Post-tax contribution (annual) <GlossaryTip term="ECM" />
+                          {t("novated.linePostTaxAnnual")} <GlossaryTip term="ECM" />
                         </span>
                         <span className={styles.value}>
                           {currencyFormatter.format(
@@ -614,7 +647,7 @@ export function NovatedLeaseCalculator() {
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Tax and levy saved</span>
+                        <span>{t("novated.lineTaxSaved")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(
                             engineResult.taxComparison?.taxAndLevySavings ?? 0,
@@ -622,13 +655,13 @@ export function NovatedLeaseCalculator() {
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Total cost over term (incl. residual)</span>
+                        <span>{t("novated.lineTotalTermInclResidual")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(comparison.novatedTotalCostOverTerm)}
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Opportunity cost benefit (term)</span>
+                        <span>{t("novated.lineOpportunityBenefit")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(
                             comparison.estimatedForgoneEarningsOverTerm,
@@ -638,28 +671,28 @@ export function NovatedLeaseCalculator() {
                     </div>
                   </article>
                   <article className={styles.compareCard}>
-                    <h4 className={styles.compareTitle}>Buy Outright</h4>
+                    <h4 className={styles.compareTitle}>{t("novated.cardBuyOutright")}</h4>
                     <div className={styles.breakdownList}>
                       <div className={styles.row}>
-                        <span>Vehicle price</span>
+                        <span>{t("novated.lineVehiclePrice")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(adaptedInput.vehicle.purchasePriceInclGst)}
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Total cash outlay (term)</span>
+                        <span>{t("novated.lineTotalCashOutlay")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(comparison.totalCashOutlayOverTerm)}
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Running costs over term</span>
+                        <span>{t("novated.lineRunningCostsTerm")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(comparison.outrightRunningCostsOverTerm)}
                         </span>
                       </div>
                       <div className={styles.row}>
-                        <span>Estimated LCT in price</span>
+                        <span>{t("novated.lineLctInPrice")}</span>
                         <span className={styles.value}>
                           {currencyFormatter.format(
                             comparison.estimatedLctIncludedInPurchasePrice,
@@ -672,11 +705,11 @@ export function NovatedLeaseCalculator() {
               </section>
 
               <details className={styles.detailsBlock} open>
-                <summary className={styles.detailsTitle}>Expandable breakdown</summary>
+                <summary className={styles.detailsTitle}>{t("novated.breakdownTitle")}</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.breakdownList}>
                     <div className={styles.row}>
-                      <span>Annual package cost before ECM</span>
+                      <span>{t("novated.lineAnnualPackageBeforeEcm")}</span>
                       <span className={styles.value}>
                         {currencyFormatter.format(
                           engineResult.packaging?.annualPackageCostBeforeEcm ?? 0,
@@ -684,7 +717,7 @@ export function NovatedLeaseCalculator() {
                       </span>
                     </div>
                     <div className={styles.row}>
-                      <span>Periodic lease repayment</span>
+                      <span>{t("novated.linePeriodicRepayment")}</span>
                       <span className={styles.value}>
                         {currencyFormatter.format(
                           engineResult.lease?.periodicFinanceRepayment ?? 0,
@@ -692,14 +725,14 @@ export function NovatedLeaseCalculator() {
                       </span>
                     </div>
                     <div className={styles.row}>
-                      <span>Residual / balloon</span>
+                      <span>{t("novated.lineResidual")}</span>
                       <span className={styles.value}>
                         {currencyFormatter.format(engineResult.lease?.residualValue ?? 0)}
                       </span>
                     </div>
                     <div className={styles.row}>
                       <span>
-                        FBT taxable value (gross) <GlossaryTip term="FBT" />
+                        {t("novated.lineFbtGross")} <GlossaryTip term="FBT" />
                       </span>
                       <span className={styles.value}>
                         {currencyFormatter.format(
@@ -712,7 +745,7 @@ export function NovatedLeaseCalculator() {
               </details>
 
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Assumptions</summary>
+                <summary className={styles.detailsTitle}>{t("novated.assumptionsTitle")}</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.breakdownList}>
                     {engineResult.assumptions.map((assumption) => (
@@ -730,13 +763,13 @@ export function NovatedLeaseCalculator() {
               </details>
 
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Data sources</summary>
+                <summary className={styles.detailsTitle}>{t("novated.sourcesTitle")}</summary>
                 <div className={styles.detailsContent}>
                   <ul className={styles.sourceList}>
                     {DATA_SOURCE_LINKS.map((source) => (
                       <li key={source.href}>
                         <a href={source.href} target="_blank" rel="noreferrer noopener">
-                          {source.label}
+                          {t(`novated.sources.${source.key}`)}
                         </a>
                       </li>
                     ))}
@@ -745,14 +778,22 @@ export function NovatedLeaseCalculator() {
               </details>
 
               <details className={styles.detailsBlock}>
-                <summary className={styles.detailsTitle}>Glossary</summary>
+                <summary className={styles.detailsTitle}>{t("novated.glossaryTitle")}</summary>
                 <div className={styles.detailsContent}>
                   <div className={styles.glossaryList}>
                     {novatedLeaseGlossary.map((entry) => (
                       <div key={entry.term} className={styles.glossaryItem}>
                         <strong>{entry.term}</strong>
-                        <p>{entry.short}</p>
-                        <p className={styles.muted}>{entry.detail}</p>
+                        <p>
+                          {t(`novated.glossary.${entry.term}.short`, {
+                            fallback: entry.short,
+                          })}
+                        </p>
+                        <p className={styles.muted}>
+                          {t(`novated.glossary.${entry.term}.detail`, {
+                            fallback: entry.detail,
+                          })}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -770,7 +811,7 @@ export function NovatedLeaseCalculator() {
                           : styles.issueWarning
                       }
                     >
-                      {toFriendlyIssueMessage(issue)}
+                      {toFriendlyIssueMessage(issue, t)}
                     </div>
                   ))}
                 </div>
