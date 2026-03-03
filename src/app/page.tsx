@@ -19,6 +19,21 @@ export default function HomePage() {
         <div className={styles.grid}>
           <article className={styles.card}>
             <div className={styles.badgeRow}>
+              <h2 className={styles.cardTitle}>{t("home.card.loanRepayment.title")}</h2>
+              <span className={`${styles.badge} ${styles.activeBadge}`}>
+                {t("home.activeBadge")}
+              </span>
+            </div>
+            <p className={styles.copy}>{t("home.card.loanRepayment.description")}</p>
+            <div className={styles.actions}>
+              <Link className={styles.primary} href="/calculators/loan-repayment">
+                {t("home.openCalculator")}
+              </Link>
+            </div>
+          </article>
+
+          <article className={styles.card}>
+            <div className={styles.badgeRow}>
               <h2 className={styles.cardTitle}>{t("home.novatedTitle")}</h2>
               <span className={`${styles.badge} ${styles.activeBadge}`}>
                 {t("home.activeBadge")}
@@ -29,19 +44,6 @@ export default function HomePage() {
               <Link className={styles.primary} href="/novated-lease">
                 {t("home.openCalculator")}
               </Link>
-            </div>
-          </article>
-
-          <article className={styles.card}>
-            <div className={styles.badgeRow}>
-              <h2 className={styles.cardTitle}>{t("home.interestTitle")}</h2>
-              <span className={styles.badge}>{t("home.comingSoonBadge")}</span>
-            </div>
-            <p className={styles.copy}>{t("home.interestDesc")}</p>
-            <div className={styles.actions}>
-              <button className={styles.disabled} type="button" disabled title={t("home.comingSoonBadge")}>
-                {t("home.comingSoonAction")}
-              </button>
             </div>
           </article>
 

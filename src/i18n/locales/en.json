@@ -35,10 +35,14 @@
     "comingSoonAction": "Coming soon",
     "novatedTitle": "Novated Lease Calculator",
     "novatedDesc": "Estimate salary packaging impact, tax effect, and buy-out comparison.",
-    "interestTitle": "Interest Rate Calculator",
-    "interestDesc": "Compare loan rates and repayment impact with clear assumptions.",
     "taxTitle": "Income Tax Calculator",
-    "taxDesc": "Estimate take-home pay using Australian tax brackets and Medicare levy."
+    "taxDesc": "Estimate take-home pay using Australian tax brackets and Medicare levy.",
+    "card": {
+      "loanRepayment": {
+        "title": "Loan Repayment Calculator",
+        "description": "Estimate repayments, borrowing capacity, and see the balance decline over time."
+      }
+    }
   },
   "calculatorPage": {
     "inputs": "Inputs",
@@ -254,6 +258,107 @@
         "detail": "Factor used to convert taxable value to grossed-up value in detailed FBT calculations."
       }
     }
+  },
+  "loanRepayment": {
+    "pageTitle": "Loan Repayment Calculator",
+    "description": "Estimate loan repayments or borrowing capacity with a simple fixed-rate amortization model.",
+    "mode": {
+      "title": "Calculation mode",
+      "forward": "Forward (loan to payment)",
+      "reverse": "Reverse (payment to loan)"
+    },
+    "inputs": {
+      "title": "Loan inputs"
+    },
+    "fields": {
+      "principal": {
+        "label": "Loan amount",
+        "hint": "How much you plan to borrow."
+      },
+      "payment": {
+        "label": "Payment per period",
+        "hint": "How much you can repay each period."
+      },
+      "rate": {
+        "label": "Annual interest rate (%)",
+        "hint": "Nominal annual rate used for estimates."
+      },
+      "years": {
+        "label": "Loan term (years)",
+        "hint": "Total length of the loan."
+      },
+      "frequency": {
+        "label": "Repayment frequency",
+        "hint": "How often repayments are made."
+      },
+      "offsetBalance": {
+        "label": "Offset balance",
+        "hint": "Balance in linked offset account used to reduce interest charged."
+      },
+      "extraPayment": {
+        "label": "Extra payment per period",
+        "hint": "Extra principal repayment added every period."
+      },
+      "repaymentType": {
+        "label": "Repayment type"
+      }
+    },
+    "frequency": {
+      "weekly": "Weekly",
+      "fortnightly": "Fortnightly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "outputs": {
+      "title": "Summary",
+      "paymentPerPeriod": "Payment per period",
+      "borrowingCapacity": "Estimated borrowing capacity",
+      "totalPaid": "Total paid over term",
+      "totalInterest": "Total interest over term",
+      "payments": "Number of payments",
+      "firstPeriodSplit": "First payment split: interest {interest}, principal {principal}."
+    },
+    "chart": {
+      "title": "Remaining balance chart",
+      "remainingBalance": "Remaining balance",
+      "elapsedMonths": "Months",
+      "elapsedYears": "Years",
+      "balance": "Remaining balance",
+      "interest": "Interest",
+      "principal": "Principal",
+      "totalPayment": "Total payment"
+    },
+    "schedule": {
+      "title": "Amortization schedule",
+      "period": "Period",
+      "payment": "Payment",
+      "interest": "Interest",
+      "principal": "Principal",
+      "balance": "Balance",
+      "showMore": "Show 24 more",
+      "showLess": "Show less"
+    },
+    "validation": {
+      "principal": "Enter a loan amount greater than zero.",
+      "payment": "Enter a payment amount greater than zero.",
+      "rate": "Enter an annual interest rate of 0 or higher.",
+      "years": "Enter a loan term greater than zero.",
+      "fixInputs": "Fix the highlighted inputs to view results.",
+      "paymentTooLow": "Payment is too low to cover interest. Increase payment, add offset, or reduce principal.",
+      "offsetBalance": "Enter an offset balance of 0 or higher.",
+      "extraPayment": "Enter an extra payment of 0 or higher."
+    },
+    "repaymentType": {
+      "pi": "Principal + Interest (PI)",
+      "io": "Interest Only (IO)"
+    },
+    "help": {
+      "offset": "Interest is calculated on remaining balance minus offset balance (not below zero).",
+      "extraPayment": "Extra payment is applied every period and reduces principal early.",
+      "io": "In IO mode, scheduled payment is interest each period. Principal only reduces via extra payment."
+    },
+    "note": {
+      "reverseIoNotSupported": "Reverse mode currently supports PI only. Switch to PI to estimate borrowing capacity."
+    }
   }
 }
-

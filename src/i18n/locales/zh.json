@@ -25,12 +25,16 @@
     "comingSoonBadge": "即将推出",
     "openCalculator": "打开计算器",
     "comingSoonAction": "即将推出",
-    "novatedTitle": "Novated Lease Calculator",
+    "novatedTitle": "Novated Lease 计算器",
     "novatedDesc": "估算薪资打包影响、税务变化，以及与直接购车的成本对比。",
-    "interestTitle": "Interest Rate Calculator",
-    "interestDesc": "比较贷款利率与还款变化，关键假设透明。",
-    "taxTitle": "Income Tax Calculator",
-    "taxDesc": "基于澳洲税率与 Medicare levy 估算税后收入。"
+    "taxTitle": "所得税计算器",
+    "taxDesc": "基于澳洲税率与 Medicare levy 估算税后收入。",
+    "card": {
+      "loanRepayment": {
+        "title": "贷款还款计算器",
+        "description": "估算每期还款、可借金额，并查看贷款余额随时间下降。"
+      }
+    }
   },
   "calculatorPage": {
     "inputs": "输入",
@@ -253,6 +257,108 @@
         "short": "FBT 毛额化系数。",
         "detail": "在详细 FBT 计算中，将应税价值转换为毛额化价值。"
       }
+    }
+  },
+  "loanRepayment": {
+    "pageTitle": "贷款还款计算器",
+    "description": "使用固定利率摊还模型，快速估算还款或可贷额度。",
+    "mode": {
+      "title": "计算模式",
+      "forward": "正向（贷款额推还款）",
+      "reverse": "反向（还款额推贷款）"
+    },
+    "inputs": {
+      "title": "贷款输入"
+    },
+    "fields": {
+      "principal": {
+        "label": "贷款金额",
+        "hint": "计划借款的金额。"
+      },
+      "payment": {
+        "label": "每期还款额",
+        "hint": "你每期可承担的还款金额。"
+      },
+      "rate": {
+        "label": "年利率（%）",
+        "hint": "用于估算的名义年利率。"
+      },
+      "years": {
+        "label": "贷款期限（年）",
+        "hint": "贷款总时长。"
+      },
+      "frequency": {
+        "label": "还款频率",
+        "hint": "选择还款周期。"
+      },
+      "offsetBalance": {
+        "label": "??????",
+        "hint": "??????????????????"
+      },
+      "extraPayment": {
+        "label": "??????",
+        "hint": "????????????"
+      },
+      "repaymentType": {
+        "label": "????"
+      }
+    },
+    "frequency": {
+      "weekly": "每周",
+      "fortnightly": "每两周",
+      "monthly": "每月",
+      "yearly": "每年"
+    },
+    "outputs": {
+      "title": "结果摘要",
+      "paymentPerPeriod": "每期还款额",
+      "borrowingCapacity": "预计可贷额度",
+      "totalPaid": "全期限总还款",
+      "totalInterest": "全期限总利息",
+      "payments": "还款期数",
+      "firstPeriodSplit": "首期还款构成：利息 {interest}，本金 {principal}。"
+    },
+    "chart": {
+      "title": "剩余贷款余额图",
+      "remainingBalance": "剩余余额",
+      "elapsedMonths": "月数",
+      "elapsedYears": "年数",
+      "balance": "????",
+      "interest": "??",
+      "principal": "??",
+      "totalPayment": "???"
+    },
+    "schedule": {
+      "title": "摊还明细表",
+      "period": "期数",
+      "payment": "还款",
+      "interest": "利息",
+      "principal": "本金",
+      "balance": "余额",
+      "showMore": "再显示 24 期",
+      "showLess": "收起"
+    },
+    "validation": {
+      "principal": "请输入大于 0 的贷款金额。",
+      "payment": "请输入大于 0 的每期还款额。",
+      "rate": "请输入大于或等于 0 的年利率。",
+      "years": "请输入大于 0 的贷款期限。",
+      "fixInputs": "请先修正高亮输入项后再查看结果。",
+      "paymentTooLow": "?????????????????????????????",
+      "offsetBalance": "???????? 0 ??????",
+      "extraPayment": "???????? 0 ??????"
+    },
+    "repaymentType": {
+      "pi": "?????PI?",
+      "io": "?????IO?"
+    },
+    "help": {
+      "offset": "?????????????????????? 0?",
+      "extraPayment": "??????????????????????",
+      "io": "IO ????????????????????????????"
+    },
+    "note": {
+      "reverseIoNotSupported": "????????? PI????? PI ?????????"
     }
   }
 }
