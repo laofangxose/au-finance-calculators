@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import {
+  useEffect,
   useRef,
   useState,
   type FocusEvent,
@@ -275,6 +277,11 @@ export function NovatedLeaseCalculator() {
       snapshot: currentSnapshot,
       result: nextEngineResult,
     });
+    track("novated_calculate", {
+      mode: normalizedState.im,
+      hasECM: (nextEngineResult.packaging?.annualPostTaxDeduction ?? 0) > 0,
+      vehicleType: normalizedState.vt,
+    });
   };
   const canCalculate =
     !hasUiErrors && (hasPendingRecalculation || calculatedState === null);
@@ -329,6 +336,10 @@ export function NovatedLeaseCalculator() {
 
   const issues =
     engineResult && !hasPendingRecalculation ? engineResult.validationIssues : [];
+
+  useEffect(() => {
+    track("calculator_view", { calculator: "novated" });
+  }, []);
 
   return (
     <CalculatorPage

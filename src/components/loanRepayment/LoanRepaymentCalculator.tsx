@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import {
   Bar,
   CartesianGrid,
@@ -75,6 +76,8 @@ function Field({ label, hint, error, children }: FieldProps) {
 
 export function LoanRepaymentCalculator() {
   const { locale, t } = useI18n();
+  const formRef = useRef<HTMLDivElement | null>(null);
+  const lastTrackedSnapshotRef = useRef<string>("");
   const [state, setState] = useQueryState(DEFAULT_LOAN_REPAYMENT_FORM_STATE);
   const normalizedState = normalizeLoanRepaymentFormState(state);
   const fieldErrors = validateLoanRepaymentFormState(normalizedState);
@@ -145,6 +148,32 @@ export function LoanRepaymentCalculator() {
         )
       : 1;
   const xTicks = buildIntegerTicks(xMax);
+  const interactionSnapshot = `${normalizedState.m}|${normalizedState.rt}|${normalizedState.f}|${normalizedState.ob}|${normalizedState.ep}|${normalizedState.p}|${normalizedState.pm}|${normalizedState.r}|${normalizedState.y}`;
+
+  useEffect(() => {
+    track("calculator_view", { calculator: "loan" });
+  }, []);
+
+  const emitLoanCalculate = () => {
+    track("loan_calculate", {
+      repaymentType: normalizedState.rt,
+      frequency: normalizedState.f,
+      hasOffset: Number(normalizedState.ob) > 0,
+      hasExtraPayment: Number(normalizedState.ep) > 0,
+    });
+    lastTrackedSnapshotRef.current = interactionSnapshot;
+  };
+
+  const onFormBlurCapture = () => {
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      const active = document.activeElement;
+      const insideForm = Boolean(formRef.current && active && formRef.current.contains(active));
+      if (!insideForm && !hasErrors && interactionSnapshot !== lastTrackedSnapshotRef.current) {
+        emitLoanCalculate();
+      }
+    });
+  };
 
   return (
     <CalculatorPage
@@ -178,7 +207,11 @@ export function LoanRepaymentCalculator() {
         </div>
       }
       form={
-        <div className={styles.stack}>
+        <div
+          ref={formRef}
+          className={styles.stack}
+          onBlurCapture={onFormBlurCapture}
+        >
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>{t("loanRepayment.mode.title")}</h3>
             <Field label={t("loanRepayment.mode.title")}>

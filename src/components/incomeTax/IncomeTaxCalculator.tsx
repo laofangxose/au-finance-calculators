@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { track } from "@vercel/analytics";
+import { useEffect, useRef } from "react";
 import { CalculatorPage } from "@/components/calculator/CalculatorPage";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -68,6 +70,8 @@ function Field({ label, error, className, children }: FieldProps) {
 
 export function IncomeTaxCalculator() {
   const { locale, t } = useI18n();
+  const formRef = useRef<HTMLDivElement | null>(null);
+  const lastTrackedSnapshotRef = useRef<string>("");
   const [state, setState] = useQueryState(DEFAULT_INCOME_TAX_FORM_STATE);
   const normalized = normalizeIncomeTaxFormState(state);
   const formErrors = validateIncomeTaxFormState(normalized);
@@ -83,6 +87,20 @@ export function IncomeTaxCalculator() {
     style: "percent",
     maximumFractionDigits: 2,
   });
+  const interactionSnapshot = `${normalized.fy}|${normalized.salaryType}|${normalized.freq}|${normalized.amount}|${normalized.bonus}|${normalized.addIncome}`;
+
+  useEffect(() => {
+    track("calculator_view", { calculator: "incomeTax" });
+  }, []);
+
+  const emitIncomeTaxCalculate = () => {
+    track("income_tax_calculate", {
+      financialYear: normalized.fy,
+      salaryType: normalized.salaryType,
+      frequency: normalized.freq,
+    });
+    lastTrackedSnapshotRef.current = interactionSnapshot;
+  };
 
   const onChange = (name: keyof IncomeTaxFormState, value: string) => {
     setState((prev) =>
@@ -91,6 +109,17 @@ export function IncomeTaxCalculator() {
         [name]: value,
       }),
     );
+  };
+
+  const onFormBlurCapture = () => {
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      const active = document.activeElement;
+      const insideForm = Boolean(formRef.current && active && formRef.current.contains(active));
+      if (!insideForm && !hasErrors && interactionSnapshot !== lastTrackedSnapshotRef.current) {
+        emitIncomeTaxCalculate();
+      }
+    });
   };
 
   return (
@@ -109,7 +138,7 @@ export function IncomeTaxCalculator() {
       resultsPanelTitle={t("calculatorPage.results")}
       layoutVariant="stacked"
       form={
-        <div className={styles.stack}>
+        <div ref={formRef} className={styles.stack} onBlurCapture={onFormBlurCapture}>
           <div className={styles.dropdownRow}>
             <Field
               className={styles.compactField}
