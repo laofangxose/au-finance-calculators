@@ -4,9 +4,11 @@ import styles from "./CalculatorPage.module.css";
 type CalculatorPageProps = {
   title: string;
   description: string;
+  feedback?: ReactNode;
   inputPanelTitle?: string;
   resultsPanelTitle?: string;
   gridVariant?: "default" | "resultsWide";
+  layoutVariant?: "split" | "stacked";
   headerAction?: ReactNode;
   resultsTop?: ReactNode;
   disclaimer?: ReactNode;
@@ -17,9 +19,11 @@ type CalculatorPageProps = {
 export function CalculatorPage({
   title,
   description,
+  feedback,
   inputPanelTitle = "Inputs",
   resultsPanelTitle = "Results",
   gridVariant = "default",
+  layoutVariant = "split",
   headerAction,
   resultsTop,
   disclaimer,
@@ -37,10 +41,13 @@ export function CalculatorPage({
             ) : null}
           </div>
           <p className={styles.description}>{description}</p>
+          {feedback ? <div className={styles.feedback}>{feedback}</div> : null}
         </header>
 
         <section
-          className={`${styles.grid} ${gridVariant === "resultsWide" ? styles.gridResultsWide : ""}`}
+          className={`${styles.grid} ${
+            gridVariant === "resultsWide" ? styles.gridResultsWide : ""
+          } ${layoutVariant === "stacked" ? styles.gridStacked : ""}`}
           aria-label="Calculator layout"
         >
           <div className={styles.panel}>

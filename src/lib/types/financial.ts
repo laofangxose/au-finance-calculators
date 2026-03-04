@@ -41,3 +41,8 @@ export type FbtConfigTable = {
   };
   source: string;
 };
+
+export type SuperGuaranteeRateTable = {
+  ratesByFinancialYear: Record<FinancialYear, number>;
+  source: string;
+};

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import {
   Bar,
   CartesianGrid,
@@ -149,9 +150,33 @@ export function LoanRepaymentCalculator() {
     <CalculatorPage
       title={t("loanRepayment.pageTitle")}
       description={t("loanRepayment.description")}
+      feedback={
+        <p>
+          {t("feedback.prompt")}{" "}
+          <Link href="mailto:au.finance.tools@gmail.com?subject=AU Finance Calculators Feedback">
+            {t("feedback.action")}
+          </Link>
+        </p>
+      }
       inputPanelTitle={t("calculatorPage.inputs")}
       resultsPanelTitle={t("calculatorPage.results")}
       gridVariant="resultsWide"
+      disclaimer={
+        <div className={styles.disclaimer}>
+          <p>{t("loanRepayment.disclaimer.general")}</p>
+          <ul>
+            <li>{t("loanRepayment.disclaimer.exclusion1")}</li>
+            <li>{t("loanRepayment.disclaimer.exclusion2")}</li>
+            <li>{t("loanRepayment.disclaimer.exclusion3")}</li>
+            <li>{t("loanRepayment.disclaimer.exclusion4")}</li>
+          </ul>
+          <p className={styles.disclaimerLinks}>
+            <Link href="/terms">{t("footer.terms")}</Link>
+            <span> · </span>
+            <Link href="/privacy">{t("footer.privacy")}</Link>
+          </p>
+        </div>
+      }
       form={
         <div className={styles.stack}>
           <section className={styles.section}>

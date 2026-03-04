@@ -43,6 +43,24 @@
   line-height: 1.45;
 }
 
+.feedback {
+  margin-top: 0.5rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.feedback a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.feedback a:hover {
+  color: var(--accent-strong);
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -52,6 +70,10 @@
 
 .gridResultsWide {
   grid-template-columns: 0.78fr 1.22fr;
+}
+
+.gridStacked {
+  grid-template-columns: 1fr;
 }
 
 .resultsColumn {

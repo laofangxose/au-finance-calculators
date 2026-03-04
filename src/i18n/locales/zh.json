@@ -7,7 +7,8 @@
     "home": "首页",
     "calculators": "计算器",
     "novatedLease": "Novated Lease",
-    "loanRepayment": "贷款还款"
+    "loanRepayment": "贷款还款",
+    "incomeTax": "所得税"
   },
   "controls": {
     "language": "语言",
@@ -34,8 +35,14 @@
       "loanRepayment": {
         "title": "贷款还款计算器",
         "description": "估算每期还款、可借金额，并查看贷款余额随时间下降。"
+      },
+      "incomeTax": {
+        "title": "所得税计算器",
+        "description": "估算税后收入、个税扣缴、Medicare levy 及雇主超级公积金。"
       }
-    }
+    },
+    "feedbackPrompt": "对这个计算器有反馈？",
+    "feedbackAction": "邮件告诉我们"
   },
   "calculatorPage": {
     "inputs": "输入",
@@ -349,7 +356,7 @@
       "rate": "请输入大于或等于 0 的年利率。",
       "years": "请输入大于 0 的贷款期限。",
       "fixInputs": "请先修正高亮输入项后再查看结果。",
-      "paymentTooLow": "?????????????????????????????",
+      "paymentTooLow": "当前还款额不足以覆盖利息。请提高还款、增加 offset balance，或降低贷款金额。",
       "offsetBalance": "请输入大于或等于 0 的对冲余额。",
       "extraPayment": "请输入大于或等于 0 的额外还款。"
     },
@@ -363,7 +370,80 @@
       "io": "在 IO 模式下，每期计划还款为当期利息；本金仅通过额外还款减少。"
     },
     "note": {
-      "reverseIoNotSupported": "????????? PI????? PI ?????????"
+      "reverseIoNotSupported": "反向模式目前仅支持 PI。请切换为 PI 后再估算可贷款额度。"
+    },
+    "disclaimer": {
+      "general": "本计算器仅提供估算，不构成财务、信贷、税务或法律建议。",
+      "exclusion1": "利率按整个贷款期限固定建模。",
+      "exclusion2": "未包含费用、放款机构收费、redraw 规则及 offset 产品条件。",
+      "exclusion3": "结果基于按期模型，可能与贷款机构账单存在差异。",
+      "exclusion4": "做出决策前，请与贷款机构或持牌专业顾问核对关键假设。"
     }
+  },
+  "incomeTax": {
+    "title": "所得税计算器",
+    "subtitle": "基于所选财年假设，估算个人所得税、Medicare levy、税后收入和雇主超级公积金。",
+    "inputs": {
+      "financialYear": "财年",
+      "salaryType": "薪资输入方式",
+      "salaryTypeExcl": "薪资（不含 super）",
+      "salaryTypeIncl": "总包（含 super）",
+      "amount": "金额",
+      "frequency": "频率",
+      "bonusPercent": "Bonus（按年基础工资百分比）",
+      "additionalIncome": "Additional income（同频率输入，不计 super）"
+    },
+    "frequency": {
+      "annual": "每年",
+      "monthly": "每月",
+      "fortnightly": "每两周",
+      "weekly": "每周"
+    },
+    "outputs": {
+      "summary": {
+        "baseSalary": "基础工资",
+        "netIncome": "税后收入",
+        "totalWithheld": "总扣缴",
+        "employerSuper": "雇主 super",
+        "totalPackage": "总包",
+        "effectiveRate": "有效税率"
+      },
+      "breakdown": {
+        "title": "各频率明细",
+        "metric": "指标"
+      }
+    },
+    "labels": {
+      "baseSalary": "基础工资（不含 super）",
+      "employerSuper": "雇主 super",
+      "totalPackage": "总包",
+      "incomeTax": "个人所得税",
+      "medicareLevy": "Medicare levy",
+      "totalWithheld": "总扣缴",
+      "netIncome": "税后收入",
+      "taxableIncome": "Taxable income",
+      "bonusIncome": "Bonus income",
+      "additionalIncome": "Additional income"
+    },
+    "disclaimer": {
+      "general": "本工具仅提供估算，不构成税务、财务或法律意见。",
+      "exclusion1": "不包含 HELP/HECS 等学生贷款影响。",
+      "exclusion2": "不包含抵扣、减免和返还等项目。",
+      "exclusion3": "不包含 Medicare levy surcharge 和私保影响。",
+      "exclusion4": "不包含 super 缴费上限与缴费税。"
+    },
+    "errors": {
+      "amount": "请输入大于或等于 0 的金额。",
+      "financialYear": "请选择有效财年。",
+      "frequency": "请选择有效频率。",
+      "salaryType": "请选择有效薪资输入方式。",
+      "fixInputs": "请先修正高亮输入项后再查看结果。",
+      "bonusPercent": "Enter a bonus percentage of 0 or higher.",
+      "additionalIncome": "Enter additional income of 0 or higher."
+    }
+  },
+  "feedback": {
+    "prompt": "对这个计算器有反馈？",
+    "action": "邮件告诉我们"
   }
 }

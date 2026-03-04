@@ -29,6 +29,10 @@ Values must remain data-driven and versioned by financial year where applicable.
   - Medicare levy base assumption
   - Source: https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/what-is-the-medicare-levy
 
+- `super/sg-rates.json`
+  - Super Guarantee (SG) rates by financial year
+  - Source: https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee
+
 - `residuals/ato-car-lease-residuals.json`
   - ATO car lease minimum residual schedule (industry-standard use of ATO ID 2002/1004 values)
   - Keep configurable and review when tax guidance changes.

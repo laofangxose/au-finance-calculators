@@ -4,6 +4,7 @@ import fy2025Tax from "./tax/brackets/FY2025-26.json";
 import fy2026Tax from "./tax/brackets/FY2026-27.json";
 import residuals from "./residuals/ato-car-lease-residuals.json";
 import fbtConfig from "./fbt/config.json";
+import sgRates from "./super/sg-rates.json";
 
 function isSortedByThreshold(
   brackets: Array<{ threshold: number }>,
@@ -32,5 +33,11 @@ describe("AU financial JSON data validation", () => {
   it("keeps FBT statutory rate within 0 and 1", () => {
     expect(fbtConfig.statutoryRate).toBeGreaterThanOrEqual(0);
     expect(fbtConfig.statutoryRate).toBeLessThanOrEqual(1);
+  });
+
+  it("contains SG rates for supported FYs", () => {
+    expect(sgRates.ratesByFinancialYear["FY2024-25"]).toBeGreaterThan(0);
+    expect(sgRates.ratesByFinancialYear["FY2025-26"]).toBeGreaterThan(0);
+    expect(sgRates.ratesByFinancialYear["FY2026-27"]).toBeGreaterThan(0);
   });
 });

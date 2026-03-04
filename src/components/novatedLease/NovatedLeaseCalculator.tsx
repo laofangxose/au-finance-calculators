@@ -334,6 +334,14 @@ export function NovatedLeaseCalculator() {
     <CalculatorPage
       title={t("novated.title")}
       description={t("novated.description")}
+      feedback={
+        <p>
+          {t("feedback.prompt")}{" "}
+          <Link href="mailto:au.finance.tools@gmail.com?subject=AU Finance Calculators Feedback">
+            {t("feedback.action")}
+          </Link>
+        </p>
+      }
       inputPanelTitle={t("calculatorPage.inputs")}
       resultsPanelTitle={t("calculatorPage.results")}
       resultsTop={

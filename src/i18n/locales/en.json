@@ -7,7 +7,8 @@
     "home": "Home",
     "calculators": "Calculators",
     "novatedLease": "Novated Lease",
-    "loanRepayment": "Loan Repayment"
+    "loanRepayment": "Loan Repayment",
+    "incomeTax": "Income Tax"
   },
   "controls": {
     "language": "Language",
@@ -42,8 +43,14 @@
       "loanRepayment": {
         "title": "Loan Repayment Calculator",
         "description": "Estimate repayments, borrowing capacity, and see the balance decline over time."
+      },
+      "incomeTax": {
+        "title": "Income Tax Calculator",
+        "description": "Estimate take-home pay, tax withheld, Medicare levy, and employer super."
       }
-    }
+    },
+    "feedbackPrompt": "Have feedback on this calculator?",
+    "feedbackAction": "Email us"
   },
   "calculatorPage": {
     "inputs": "Inputs",
@@ -364,6 +371,79 @@
     },
     "note": {
       "reverseIoNotSupported": "Reverse mode currently supports PI only. Switch to PI to estimate borrowing capacity."
+    },
+    "disclaimer": {
+      "general": "This calculator provides estimates only and is not financial, credit, tax, or legal advice.",
+      "exclusion1": "Interest rates are modeled as fixed over the full term.",
+      "exclusion2": "Fees, lender charges, redraw rules, and offset product conditions are excluded.",
+      "exclusion3": "Results are based on a per-period model and may differ from lender statements.",
+      "exclusion4": "Always verify assumptions with your lender or licensed adviser before decisions."
     }
+  },
+  "incomeTax": {
+    "title": "Income Tax Calculator",
+    "subtitle": "Estimate income tax, Medicare levy, net income, and employer super using selected financial year assumptions.",
+    "inputs": {
+      "financialYear": "Financial year",
+      "salaryType": "Salary input type",
+      "salaryTypeExcl": "Salary (excl. super)",
+      "salaryTypeIncl": "Total package (incl. super)",
+      "amount": "Amount",
+      "bonusPercent": "Bonus (% of annual base salary)",
+      "additionalIncome": "Additional income (same frequency, no super)",
+      "frequency": "Frequency"
+    },
+    "frequency": {
+      "annual": "Annual",
+      "monthly": "Monthly",
+      "fortnightly": "Fortnightly",
+      "weekly": "Weekly"
+    },
+    "outputs": {
+      "summary": {
+        "baseSalary": "Base salary",
+        "netIncome": "Net income",
+        "totalWithheld": "Total withheld",
+        "employerSuper": "Employer super",
+        "totalPackage": "Total package",
+        "effectiveRate": "Effective tax rate"
+      },
+      "breakdown": {
+        "title": "Breakdown by frequency",
+        "metric": "Metric"
+      }
+    },
+    "labels": {
+      "taxableIncome": "Taxable income",
+      "baseSalary": "Base salary (excl. super)",
+      "bonusIncome": "Bonus income",
+      "additionalIncome": "Additional income",
+      "employerSuper": "Employer super",
+      "totalPackage": "Total package",
+      "incomeTax": "Income tax",
+      "medicareLevy": "Medicare levy",
+      "totalWithheld": "Total withheld",
+      "netIncome": "Net income"
+    },
+    "disclaimer": {
+      "general": "This calculator provides estimates only and is not tax, financial, or legal advice.",
+      "exclusion1": "HELP/HECS and other student loans are excluded.",
+      "exclusion2": "Offsets, deductions, and rebates are excluded.",
+      "exclusion3": "Medicare levy surcharge and private health effects are excluded.",
+      "exclusion4": "Super contribution caps and contribution tax are excluded."
+    },
+    "errors": {
+      "amount": "Enter an amount of 0 or higher.",
+      "bonusPercent": "Enter a bonus percentage of 0 or higher.",
+      "additionalIncome": "Enter additional income of 0 or higher.",
+      "financialYear": "Select a valid financial year.",
+      "frequency": "Select a valid frequency.",
+      "salaryType": "Select a valid salary input type.",
+      "fixInputs": "Fix the highlighted inputs to view results."
+    }
+  },
+  "feedback": {
+    "prompt": "Have feedback on this calculator?",
+    "action": "Email us"
   }
 }

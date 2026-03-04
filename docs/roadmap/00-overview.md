@@ -15,6 +15,7 @@
 7. `M6` - Mobile Usability and Responsive Polish
 8. `M7` - Loan Repayment Calculator (forward + reverse amortization)
 9. `M7 Phase 2` - Offset/Extra, PI vs IO, Dual-axis chart
+10. `M8` - Income Tax Calculator (with super)
 
 ## Milestone Files
 - `docs/roadmap/01-m0-scaffold-and-baseline.md`
@@ -26,6 +27,7 @@
 - `docs/roadmap/07-m6-mobile-usability-and-responsive-polish.md`
 - `docs/roadmap/08-m7-loan-repayment-calculator.md`
 - `docs/roadmap/08-m7-loan-repayment-phase2-offset-extra-io-chart.md`
+- `docs/roadmap/09-m8-income-tax-calculator.md`
 
 ## Global Constraints
 - Keep financial logic pure under `src/lib/calculators/novatedLease/**`.

@@ -35,6 +35,14 @@ export function AppHeader() {
             {t("nav.loanRepayment")}
           </Link>
           <Link
+            href="/calculators/income-tax"
+            className={`${styles.navLink} ${
+              pathname === "/calculators/income-tax" ? styles.navLinkActive : ""
+            }`}
+          >
+            {t("nav.incomeTax")}
+          </Link>
+          <Link
             href="/novated-lease"
             className={`${styles.navLink} ${
               pathname === "/novated-lease" ? styles.navLinkActive : ""

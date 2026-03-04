@@ -14,15 +14,21 @@ export default function HomePage() {
           <h1 className={styles.title}>{t("home.title")}</h1>
           <p className={styles.copy}>{t("home.subtitle")}</p>
           <p className={styles.copy}>{t("home.disclaimer")}</p>
+          <p className={styles.feedbackLine}>
+            {t("home.feedbackPrompt")}{" "}
+            <a
+              className={styles.feedbackLink}
+              href="mailto:au.finance.tools@gmail.com?subject=AU Finance Calculators Feedback"
+            >
+              {t("home.feedbackAction")}
+            </a>
+          </p>
         </header>
 
         <div className={styles.grid}>
           <article className={styles.card}>
             <div className={styles.badgeRow}>
               <h2 className={styles.cardTitle}>{t("home.card.loanRepayment.title")}</h2>
-              <span className={`${styles.badge} ${styles.activeBadge}`}>
-                {t("home.activeBadge")}
-              </span>
             </div>
             <p className={styles.copy}>{t("home.card.loanRepayment.description")}</p>
             <div className={styles.actions}>
@@ -35,9 +41,6 @@ export default function HomePage() {
           <article className={styles.card}>
             <div className={styles.badgeRow}>
               <h2 className={styles.cardTitle}>{t("home.novatedTitle")}</h2>
-              <span className={`${styles.badge} ${styles.activeBadge}`}>
-                {t("home.activeBadge")}
-              </span>
             </div>
             <p className={styles.copy}>{t("home.novatedDesc")}</p>
             <div className={styles.actions}>
@@ -49,14 +52,13 @@ export default function HomePage() {
 
           <article className={styles.card}>
             <div className={styles.badgeRow}>
-              <h2 className={styles.cardTitle}>{t("home.taxTitle")}</h2>
-              <span className={styles.badge}>{t("home.comingSoonBadge")}</span>
+              <h2 className={styles.cardTitle}>{t("home.card.incomeTax.title")}</h2>
             </div>
-            <p className={styles.copy}>{t("home.taxDesc")}</p>
+            <p className={styles.copy}>{t("home.card.incomeTax.description")}</p>
             <div className={styles.actions}>
-              <button className={styles.disabled} type="button" disabled title={t("home.comingSoonBadge")}>
-                {t("home.comingSoonAction")}
-              </button>
+              <Link className={styles.primary} href="/calculators/income-tax">
+                {t("home.openCalculator")}
+              </Link>
             </div>
           </article>
         </div>
